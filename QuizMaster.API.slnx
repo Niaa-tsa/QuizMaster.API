@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="QuizMaster.API/QuizMaster.API.csproj" />
+  <Project Path="QuizMaster.Domain/QuizMaster.Domain.csproj" />
+  <Project Path="QuizMaster.Infrastructure/QuizMaster.Infrastructure.csproj" />
+  <Project Path="QuizMaster.Service/QuizMaster.Service.csproj" />
+</Solution>
