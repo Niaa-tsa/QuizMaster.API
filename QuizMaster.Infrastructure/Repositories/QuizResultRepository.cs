@@ -3,32 +3,62 @@ using QuizMaster.Domain.Entities;
 using QuizMaster.Infrastructure.Data;
 using QuizMaster.Service.Interfaces.Repositories;
 
-namespace QuizMaster.Infrastructure.Repositories;
-
-public class QuizResultRepository : IQuizResultRepository
+namespace QuizMaster.Infrastructure.Repositories
 {
-    private readonly QuizMasterDbContext _context;
-
-    public QuizResultRepository(QuizMasterDbContext context)
+    public class QuizResultRepository : IQuizResultRepository
     {
-        _context = context;
+        private readonly QuizMasterDbContext _context;
+
+        public QuizResultRepository(QuizMasterDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task AddQuizResultAsync(QuizResult quizResult)
+        {
+            await _context.QuizResults.AddAsync(quizResult);
+        }
+
+        public async Task<ICollection<QuizResult>> GetAllQuizResultsAsync()
+        {
+            return await _context.QuizResults
+                .Include(r => r.QuizAttempt)
+                .ToListAsync();
+        }
+
+        public async Task<QuizResult?> GetQuizResultByIdAsync(int id)
+        {
+            return await _context.QuizResults
+                .Include(r => r.QuizAttempt)
+                .FirstOrDefaultAsync(r => r.Id == id);
+        }
+
+        public async Task UpdateQuizResultAsync(int id, QuizResult quizResult)
+        {
+            var existingResult = await _context.QuizResults
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (existingResult == null)
+                throw new ArgumentException("Quiz result not found");
+            existingResult.AttemptId = quizResult.AttemptId;
+            existingResult.Score = quizResult.Score;
+            existingResult.MaxScore = quizResult.MaxScore;
+        }
+
+        public async Task DeleteQuizResultAsync(int id)
+        {
+            var quizResult = await _context.QuizResults
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (quizResult == null)
+                throw new ArgumentException("Quiz result not found");
+
+            _context.QuizResults.Remove(quizResult);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
-
-    public async Task<List<QuizResult>> GetAllAsync() =>
-        await _context.QuizResults.ToListAsync();
-
-    public async Task<QuizResult?> GetByIdAsync(int id) =>
-        await _context.QuizResults.FindAsync(id);
-
-    public async Task AddAsync(QuizResult quizResult) =>
-        await _context.QuizResults.AddAsync(quizResult);
-
-    public void Update(QuizResult quizResult) =>
-        _context.QuizResults.Update(quizResult);
-
-    public void Delete(QuizResult quizResult) =>
-        _context.QuizResults.Remove(quizResult);
-
-    public async Task SaveChangesAsync() =>
-        await _context.SaveChangesAsync();
 }

@@ -38,7 +38,8 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("Id");
 
@@ -64,7 +65,8 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
@@ -73,7 +75,10 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.HasIndex("QuizId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", t =>
+                        {
+                            t.HasCheckConstraint("CK_Questions_Points", "[Points] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("QuizMaster.Domain.Entities.Quiz", b =>
@@ -125,7 +130,8 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -163,7 +169,12 @@ namespace QuizMaster.Infrastructure.Migrations
                     b.HasIndex("AttemptId")
                         .IsUnique();
 
-                    b.ToTable("QuizResults");
+                    b.ToTable("QuizResults", t =>
+                        {
+                            t.HasCheckConstraint("CK_QuizResults_Score", "[Score] >= 0 AND [MaxScore] >= 0");
+
+                            t.HasCheckConstraint("CK_QuizResults_ScoreNotExceedMax", "[Score] <= [MaxScore]");
+                        });
                 });
 
             modelBuilder.Entity("QuizMaster.Domain.Entities.Role", b =>
@@ -176,7 +187,8 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -219,9 +231,10 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.HasIndex("AnswerOptionId");
 
-                    b.HasIndex("AttemptId");
-
                     b.HasIndex("QuestionId");
+
+                    b.HasIndex("AttemptId", "QuestionId", "AnswerOptionId")
+                        .IsUnique();
 
                     b.ToTable("StudentAnswers");
                 });
@@ -236,7 +249,8 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -247,7 +261,8 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.Property<string>("UserName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 

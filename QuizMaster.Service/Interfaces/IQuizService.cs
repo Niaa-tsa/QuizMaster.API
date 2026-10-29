@@ -9,4 +9,10 @@ public interface IQuizService
     Task AddAsync(Quiz quiz);
     Task<bool> UpdateAsync(Quiz quiz);
     Task<bool> DeleteAsync(int id);
+
+    Task<bool> PublishAsync(int id);
+    Task<bool> CloseAsync(int id);
+
+    Task<List<Quiz>> GetPublishedAsync();
+
 }

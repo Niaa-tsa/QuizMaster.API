@@ -1,4 +1,5 @@
-﻿using QuizMaster.Domain.Entities;
+﻿
+using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 
@@ -13,37 +14,46 @@ public class UserService : IUserService
         _repository = repository;
     }
 
-    public Task<List<User>> GetAllAsync() =>
-        _repository.GetAllAsync();
+    public async Task<List<User>> GetAllAsync()
+    {
+        var users = await _repository.GetAllUsersAsync();
+        return users.ToList();
+    }
 
-    public Task<User?> GetByIdAsync(int id) =>
-        _repository.GetByIdAsync(id);
+    public Task<User?> GetByIdAsync(int id)
+    {
+        return _repository.GetUserByIdAsync(id);
+    }
 
     public async Task AddAsync(User user)
     {
-        await _repository.AddAsync(user);
+        await _repository.AddUserAsync(user);
         await _repository.SaveChangesAsync();
     }
 
     public async Task<bool> UpdateAsync(User user)
     {
-        if (await _repository.GetByIdAsync(user.Id) is null)
+        var existingUser = await _repository.GetUserByIdAsync(user.Id);
+
+        if (existingUser is null)
             return false;
 
-        _repository.Update(user);
+        await _repository.UpdateUserAsync(user.Id, user);
         await _repository.SaveChangesAsync();
+
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var user = await _repository.GetByIdAsync(id);
+        var user = await _repository.GetUserByIdAsync(id);
 
         if (user is null)
             return false;
 
-        _repository.Delete(user);
+        await _repository.DeleteUserAsync(id);
         await _repository.SaveChangesAsync();
+
         return true;
     }
 }

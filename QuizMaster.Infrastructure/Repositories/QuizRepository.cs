@@ -3,30 +3,69 @@ using QuizMaster.Domain.Entities;
 using QuizMaster.Infrastructure.Data;
 using QuizMaster.Service.Interfaces.Repositories;
 
-namespace QuizMaster.Infrastructure.Repositories;
-
-public class QuizRepository : IQuizRepository
+namespace QuizMaster.Infrastructure.Repositories
 {
-    private readonly QuizMasterDbContext _context;
-
-    public QuizRepository(QuizMasterDbContext context)
+    public class QuizRepository : IQuizRepository
     {
-        _context = context;
+        private readonly QuizMasterDbContext _context;
+
+        public QuizRepository(QuizMasterDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task AddQuizAsync(Quiz quiz)
+        {
+            await _context.Quizzes.AddAsync(quiz);
+        }
+
+        public async Task<ICollection<Quiz>> GetAllQuizzesAsync()
+        {
+            return await _context.Quizzes
+                .Include(q => q.Questions)
+                .ToListAsync();
+        }
+
+        public async Task<ICollection<Quiz>> GetPublishedQuizzesAsync()
+        {
+            return await _context.Quizzes
+                .Where(q => q.IsPublished)
+                .ToListAsync();
+        }
+
+        public async Task<Quiz?> GetQuizByIdAsync(int id)
+        {
+            return await _context.Quizzes
+                .Include(q => q.Questions)
+                .FirstOrDefaultAsync(q => q.Id == id);
+        }
+
+        public async Task UpdateQuizAsync(int id, Quiz quiz)
+        {
+            var existingQuiz = await _context.Quizzes
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (existingQuiz == null)
+                throw new ArgumentException("Quiz not found");
+
+            existingQuiz.Title = quiz.Title;
+            existingQuiz.TimeLimitMinutes = quiz.TimeLimitMinutes;
+            existingQuiz.IsPublished = quiz.IsPublished;
+        }
+        public async Task DeleteQuizAsync(int id)
+        {
+            var quiz = await _context.Quizzes
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (quiz == null)
+                throw new ArgumentException("Quiz not found");
+
+            _context.Quizzes.Remove(quiz);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
-
-    public async Task<List<Quiz>> GetAllAsync() =>
-        await _context.Quizzes.ToListAsync();
-
-    public async Task<Quiz?> GetByIdAsync(int id) =>
-        await _context.Quizzes.FindAsync(id);
-
-    public async Task AddAsync(Quiz quiz) =>
-        await _context.Quizzes.AddAsync(quiz);
-
-    public void Update(Quiz quiz) => _context.Quizzes.Update(quiz);
-
-    public void Delete(Quiz quiz) => _context.Quizzes.Remove(quiz);
-
-    public async Task SaveChangesAsync() =>
-        await _context.SaveChangesAsync();
 }

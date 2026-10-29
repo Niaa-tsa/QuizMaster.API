@@ -1,13 +1,14 @@
 ﻿using QuizMaster.Domain.Entities;
 
-namespace QuizMaster.Service.Interfaces.Repositories;
-
-public interface IUserRepository
+namespace QuizMaster.Service.Interfaces.Repositories
 {
-    Task<List<User>> GetAllAsync();
-    Task<User?> GetByIdAsync(int id);
-    Task AddAsync(User user);
-    void Update(User user);
-    void Delete(User user);
-    Task SaveChangesAsync();
+    public interface IUserRepository
+    {
+        Task AddUserAsync(User user);
+        Task<ICollection<User>> GetAllUsersAsync();
+        Task<User?> GetUserByIdAsync(int id);
+        Task UpdateUserAsync(int id, User user);
+        Task DeleteUserAsync(int id);
+        Task SaveChangesAsync();
+    }
 }

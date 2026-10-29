@@ -1,4 +1,5 @@
-﻿using QuizMaster.Domain.Entities;
+﻿
+using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 
@@ -13,37 +14,52 @@ public class AnswerOptionService : IAnswerOptionService
         _repository = repository;
     }
 
-    public Task<List<AnswerOption>> GetAllAsync() =>
-        _repository.GetAllAsync();
+    public async Task<List<AnswerOption>> GetAllAsync()
+    {
+        var answerOptions =
+            await _repository.GetAllAnswerOptionsAsync();
 
-    public Task<AnswerOption?> GetByIdAsync(int id) =>
-        _repository.GetByIdAsync(id);
+        return answerOptions.ToList();
+    }
+
+    public Task<AnswerOption?> GetByIdAsync(int id)
+    {
+        return _repository.GetAnswerOptionByIdAsync(id);
+    }
 
     public async Task AddAsync(AnswerOption answerOption)
     {
-        await _repository.AddAsync(answerOption);
+        await _repository.AddAnswerOptionAsync(answerOption);
         await _repository.SaveChangesAsync();
     }
 
     public async Task<bool> UpdateAsync(AnswerOption answerOption)
     {
-        if (await _repository.GetByIdAsync(answerOption.Id) is null)
+        var existingOption =
+            await _repository.GetAnswerOptionByIdAsync(answerOption.Id);
+
+        if (existingOption is null)
             return false;
 
-        _repository.Update(answerOption);
+        await _repository.UpdateAnswerOptionAsync(
+            answerOption.Id, answerOption);
+
         await _repository.SaveChangesAsync();
+
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var answerOption = await _repository.GetByIdAsync(id);
+        var answerOption =
+            await _repository.GetAnswerOptionByIdAsync(id);
 
         if (answerOption is null)
             return false;
 
-        _repository.Delete(answerOption);
+        await _repository.DeleteAnswerOptionAsync(id);
         await _repository.SaveChangesAsync();
+
         return true;
     }
 }

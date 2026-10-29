@@ -1,4 +1,5 @@
-﻿using QuizMaster.Domain.Entities;
+﻿
+using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 
@@ -13,37 +14,46 @@ public class RoleService : IRoleService
         _repository = repository;
     }
 
-    public Task<List<Role>> GetAllAsync() =>
-        _repository.GetAllAsync();
+    public async Task<List<Role>> GetAllAsync()
+    {
+        var roles = await _repository.GetAllRolesAsync();
+        return roles.ToList();
+    }
 
-    public Task<Role?> GetByIdAsync(int id) =>
-        _repository.GetByIdAsync(id);
+    public Task<Role?> GetByIdAsync(int id)
+    {
+        return _repository.GetRoleByIdAsync(id);
+    }
 
     public async Task AddAsync(Role role)
     {
-        await _repository.AddAsync(role);
+        await _repository.AddRoleAsync(role);
         await _repository.SaveChangesAsync();
     }
 
     public async Task<bool> UpdateAsync(Role role)
     {
-        if (await _repository.GetByIdAsync(role.Id) is null)
+        var existingRole = await _repository.GetRoleByIdAsync(role.Id);
+
+        if (existingRole is null)
             return false;
 
-        _repository.Update(role);
+        await _repository.UpdateRoleAsync(role.Id, role);
         await _repository.SaveChangesAsync();
+
         return true;
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var role = await _repository.GetByIdAsync(id);
+        var role = await _repository.GetRoleByIdAsync(id);
 
         if (role is null)
             return false;
 
-        _repository.Delete(role);
+        await _repository.DeleteRoleAsync(id);
         await _repository.SaveChangesAsync();
+
         return true;
     }
 }

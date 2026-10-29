@@ -9,4 +9,5 @@ public interface IQuizAttemptService
     Task AddAsync(QuizAttempt quizAttempt);
     Task<bool> UpdateAsync(QuizAttempt quizAttempt);
     Task<bool> DeleteAsync(int id);
+    Task<QuizAttempt?> StartAsync(int quizId, int userId);
 }
