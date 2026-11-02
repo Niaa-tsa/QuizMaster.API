@@ -4,10 +4,18 @@ namespace QuizMaster.Service.Interfaces;
 
 public interface IQuizAttemptService
 {
-    Task<List<QuizAttempt>> GetAllAsync();
-    Task<QuizAttempt?> GetByIdAsync(int id);
-    Task AddAsync(QuizAttempt quizAttempt);
-    Task<bool> UpdateAsync(QuizAttempt quizAttempt);
-    Task<bool> DeleteAsync(int id);
-    Task<QuizAttempt?> StartAsync(int quizId, int userId);
+    Task<QuizAttempt?> GetStudentAttemptAsync(
+        int attemptId,
+        int userId);
+
+    Task<QuizAttempt?> StartAsync(
+        int quizId,
+        int userId);
+
+    Task<List<QuizAttempt>> GetStudentAttemptsAsync(
+        int userId);
+
+    Task<QuizResult?> FinishAttemptAsync(
+        int attemptId,
+        int userId);
 }

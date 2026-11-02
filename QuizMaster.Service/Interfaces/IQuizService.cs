@@ -12,7 +12,7 @@ public interface IQuizService
 
     Task<bool> PublishAsync(int id);
     Task<bool> CloseAsync(int id);
-
+    Task<bool> HasAttemptsAsync(int quizId);
     Task<List<Quiz>> GetPublishedAsync();
 
 }

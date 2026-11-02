@@ -33,11 +33,10 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDTO> RegisterAsync(
         RegisterRequestDTO request)
     {
-        var users = await _userRepository.GetAllUsersAsync();
+        var existingUser = await _userRepository.GetUserByEmailAsync(
+    request.Email.Trim());
 
-        if (users.Any(u =>
-            u.Email.Equals(request.Email.Trim(),
-                StringComparison.OrdinalIgnoreCase)))
+        if (existingUser != null)
         {
             throw new InvalidOperationException(
                 "An account with this email already exists.");
@@ -76,11 +75,8 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDTO?> LoginAsync(
         LoginRequestDTO request)
     {
-        var users = await _userRepository.GetAllUsersAsync();
-
-        var user = users.FirstOrDefault(u =>
-            u.Email.Equals(request.Email.Trim(),
-                StringComparison.OrdinalIgnoreCase));
+        var user = await _userRepository.GetUserByEmailAsync(
+     request.Email.Trim());
 
         if (user is null)
             return null;

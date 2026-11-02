@@ -138,9 +138,10 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuizId");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("QuizId", "UserId")
+                        .IsUnique();
 
                     b.ToTable("QuizAttempts");
                 });

@@ -32,7 +32,12 @@ namespace QuizMaster.Infrastructure.Repositories
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
-
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
+        }
         public async Task UpdateUserAsync(int id, User user)
         {
             var existingUser = await _context.Users

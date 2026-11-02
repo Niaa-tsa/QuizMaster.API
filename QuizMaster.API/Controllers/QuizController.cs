@@ -97,15 +97,23 @@ public class QuizController : ControllerBase
         {
             return NotFound(new { message = "Quiz not found." });
         }
-
+        if (quiz.IsPublished)
+        {
+            return BadRequest(new
+            {
+                message = "Published quizzes cannot be updated."
+            });
+        }
         quiz.Title = request.Title;
         quiz.TimeLimitMinutes = request.TimeLimitMinutes;
 
         var updated = await _quizService.UpdateAsync(quiz);
-
         if (!updated)
         {
-            return NotFound(new { message = "Quiz not found." });
+            return BadRequest(new
+            {
+                message = "Quiz cannot be updated because it is published or has student attempts."
+            });
         }
 
         var response = new QuizResponseDTO
@@ -119,29 +127,57 @@ public class QuizController : ControllerBase
 
         return Ok(response);
     }
-
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
+        var quiz = await _quizService.GetByIdAsync(id);
+
+        if (quiz is null)
+            return NotFound(new { message = "Quiz not found." });
+
+        if (quiz.IsPublished)
+            return BadRequest(new
+            {
+                message = "Published quizzes cannot be deleted."
+            });
+
         var deleted = await _quizService.DeleteAsync(id);
 
         if (!deleted)
-        {
-            return NotFound(new { message = "Quiz not found." });
-        }
+            return BadRequest(new
+            {
+                message = "Quiz has student attempts and cannot be deleted."
+            });
 
         return NoContent();
     }
-
     [HttpPatch("{id:int}/publish")]
     public async Task<IActionResult> Publish(int id)
     {
+        var quiz = await _quizService.GetByIdAsync(id);
+
+        if (quiz is null)
+            return NotFound(new { message = "Quiz not found." });
+
+        if (quiz.IsPublished)
+            return BadRequest(new
+            {
+                message = "Quiz is already published."
+            });
+
+        if (quiz.Questions == null || !quiz.Questions.Any())
+            return BadRequest(new
+            {
+                message = "Quiz must contain at least one question."
+            });
+
         var published = await _quizService.PublishAsync(id);
 
         if (!published)
-        {
-            return NotFound(new { message = "Quiz not found." });
-        }
+            return BadRequest(new
+            {
+                message = "Quiz could not be published."
+            });
 
         return Ok(new { message = "Quiz published successfully." });
     }
@@ -149,12 +185,24 @@ public class QuizController : ControllerBase
     [HttpPatch("{id:int}/close")]
     public async Task<IActionResult> Close(int id)
     {
+        var quiz = await _quizService.GetByIdAsync(id);
+
+        if (quiz is null)
+            return NotFound(new { message = "Quiz not found." });
+
+        if (!quiz.IsPublished)
+            return BadRequest(new
+            {
+                message = "Quiz is already closed."
+            });
+
         var closed = await _quizService.CloseAsync(id);
 
         if (!closed)
-        {
-            return NotFound(new { message = "Quiz not found." });
-        }
+            return BadRequest(new
+            {
+                message = "Quiz could not be closed."
+            });
 
         return Ok(new { message = "Quiz closed successfully." });
     }

@@ -19,26 +19,9 @@ namespace QuizMaster.Infrastructure.Repositories
             await _context.QuizAttempts.AddAsync(quizAttempt);
         }
 
-        public async Task<ICollection<QuizAttempt>> GetAllQuizAttemptsAsync()
-        {
-            return await _context.QuizAttempts
-                .Include(a => a.User)
-                .Include(a => a.Quiz)
-                .ToListAsync();
-        }
-
-        public async Task<QuizAttempt?> GetQuizAttemptByIdAsync(int id)
-        {
-            return await _context.QuizAttempts
-                .Include(a => a.User)
-                .Include(a => a.Quiz)
-                .Include(a => a.StudentAnswers)
-                .Include(a => a.QuizResult)
-                .FirstOrDefaultAsync(a => a.Id == id);
-        }
-
         public async Task UpdateQuizAttemptAsync(
-        int id, QuizAttempt quizAttempt)
+            int id,
+            QuizAttempt quizAttempt)
         {
             var existingAttempt = await _context.QuizAttempts
                 .FirstOrDefaultAsync(a => a.Id == id);
@@ -46,21 +29,40 @@ namespace QuizMaster.Infrastructure.Repositories
             if (existingAttempt == null)
                 throw new ArgumentException("Quiz attempt not found");
 
-            existingAttempt.UserId = quizAttempt.UserId;
-            existingAttempt.QuizId = quizAttempt.QuizId;
-            existingAttempt.StartedAt = quizAttempt.StartedAt;
             existingAttempt.FinishedAt = quizAttempt.FinishedAt;
             existingAttempt.Status = quizAttempt.Status;
         }
-        public async Task DeleteQuizAttemptAsync(int id)
+
+        public async Task<bool> HasAttemptsForQuizAsync(int quizId)
         {
-            var quizAttempt = await _context.QuizAttempts
-                .FirstOrDefaultAsync(a => a.Id == id);
+            return await _context.QuizAttempts
+                .AnyAsync(a => a.QuizId == quizId);
+        }
 
-            if (quizAttempt == null)
-                throw new ArgumentException("Quiz attempt not found");
+        public async Task<QuizAttempt?> GetStudentAttemptAsync(
+            int attemptId,
+            int userId)
+        {
+            return await _context.QuizAttempts
+                .Include(a => a.Quiz)
+                    .ThenInclude(q => q.Questions)
+                        .ThenInclude(q => q.AnswerOptions)
+                .Include(a => a.StudentAnswers)
+                .Include(a => a.QuizResult)
+                .FirstOrDefaultAsync(a =>
+                    a.Id == attemptId &&
+                    a.UserId == userId);
+        }
 
-            _context.QuizAttempts.Remove(quizAttempt);
+        public async Task<ICollection<QuizAttempt>> GetStudentAttemptsAsync(
+            int userId)
+        {
+            return await _context.QuizAttempts
+                .Include(a => a.Quiz)
+                .Include(a => a.QuizResult)
+                .Where(a => a.UserId == userId)
+                .OrderByDescending(a => a.StartedAt)
+                .ToListAsync();
         }
 
         public async Task SaveChangesAsync()

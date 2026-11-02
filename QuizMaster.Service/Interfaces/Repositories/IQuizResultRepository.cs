@@ -1,14 +1,9 @@
 ﻿using QuizMaster.Domain.Entities;
 
-namespace QuizMaster.Service.Interfaces.Repositories
+namespace QuizMaster.Service.Interfaces.Repositories;
+
+public interface IQuizResultRepository
 {
-    public interface IQuizResultRepository
-    {
-        Task AddQuizResultAsync(QuizResult quizResult);
-        Task<ICollection<QuizResult>> GetAllQuizResultsAsync();
-        Task<QuizResult?> GetQuizResultByIdAsync(int id);
-        Task UpdateQuizResultAsync(int id, QuizResult quizResult);
-        Task DeleteQuizResultAsync(int id);
-        Task SaveChangesAsync();
-    }
+    Task AddQuizResultAsync(QuizResult quizResult);
+    Task SaveChangesAsync();
 }

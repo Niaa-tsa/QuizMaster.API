@@ -8,12 +8,15 @@ namespace QuizMaster.Service.Services;
 public class QuizService : IQuizService
 {
     private readonly IQuizRepository _repository;
+    private readonly IQuizAttemptRepository _attemptRepository;
 
-    public QuizService(IQuizRepository repository)
+    public QuizService(
+      IQuizRepository repository,
+      IQuizAttemptRepository attemptRepository)
     {
         _repository = repository;
+        _attemptRepository = attemptRepository;
     }
-
     public async Task<List<Quiz>> GetAllAsync()
     {
         var quizzes = await _repository.GetAllQuizzesAsync();
@@ -36,7 +39,13 @@ public class QuizService : IQuizService
         var existingQuiz =
             await _repository.GetQuizByIdAsync(quiz.Id);
 
-        if (existingQuiz is null)
+        if (existingQuiz is null || existingQuiz.IsPublished)
+            return false;
+
+        var hasAttempts =
+            await _attemptRepository.HasAttemptsForQuizAsync(quiz.Id);
+
+        if (hasAttempts)
             return false;
 
         await _repository.UpdateQuizAsync(quiz.Id, quiz);
@@ -44,12 +53,17 @@ public class QuizService : IQuizService
 
         return true;
     }
-
     public async Task<bool> DeleteAsync(int id)
     {
         var quiz = await _repository.GetQuizByIdAsync(id);
 
-        if (quiz is null)
+        if (quiz is null || quiz.IsPublished)
+            return false;
+
+        var hasAttempts =
+            await _attemptRepository.HasAttemptsForQuizAsync(id);
+
+        if (hasAttempts)
             return false;
 
         await _repository.DeleteQuizAsync(id);
@@ -57,12 +71,26 @@ public class QuizService : IQuizService
 
         return true;
     }
-
+    public async Task<bool> HasAttemptsAsync(int quizId)
+    {
+        return await _attemptRepository.HasAttemptsForQuizAsync(quizId);
+    }
     public async Task<bool> PublishAsync(int id)
     {
         var quiz = await _repository.GetQuizByIdAsync(id);
 
         if (quiz is null)
+            return false;
+
+        if (quiz.IsPublished)
+            return false;
+
+        if (quiz.Questions == null || !quiz.Questions.Any())
+            return false;
+        var hasAttempts = await _attemptRepository
+    .HasAttemptsForQuizAsync(id);
+
+        if (hasAttempts)
             return false;
 
         quiz.IsPublished = true;
@@ -76,8 +104,7 @@ public class QuizService : IQuizService
     public async Task<bool> CloseAsync(int id)
     {
         var quiz = await _repository.GetQuizByIdAsync(id);
-
-        if (quiz is null)
+        if (quiz is null || !quiz.IsPublished)
             return false;
 
         quiz.IsPublished = false;

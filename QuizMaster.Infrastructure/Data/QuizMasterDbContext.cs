@@ -119,7 +119,9 @@ public class QuizMasterDbContext : DbContext
             .Property(a => a.Status)
             .HasMaxLength(20)
             .IsRequired();
-
+        modelBuilder.Entity<QuizAttempt>()
+            .HasIndex(a => new { a.QuizId, a.UserId })
+            .IsUnique();
         modelBuilder.Entity<QuizAttempt>()
             .HasOne(a => a.User)
             .WithMany(u => u.QuizAttempts)

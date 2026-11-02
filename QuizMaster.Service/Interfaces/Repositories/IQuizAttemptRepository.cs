@@ -5,10 +5,20 @@ namespace QuizMaster.Service.Interfaces.Repositories
     public interface IQuizAttemptRepository
     {
         Task AddQuizAttemptAsync(QuizAttempt quizAttempt);
-        Task<ICollection<QuizAttempt>> GetAllQuizAttemptsAsync();
-        Task<QuizAttempt?> GetQuizAttemptByIdAsync(int id);
-        Task UpdateQuizAttemptAsync(int id, QuizAttempt quizAttempt);
-        Task DeleteQuizAttemptAsync(int id);
+
+        Task UpdateQuizAttemptAsync(
+            int id,
+            QuizAttempt quizAttempt);
+
+        Task<QuizAttempt?> GetStudentAttemptAsync(
+            int attemptId,
+            int userId);
+
+        Task<bool> HasAttemptsForQuizAsync(int quizId);
+
+        Task<ICollection<QuizAttempt>> GetStudentAttemptsAsync(
+            int userId);
+
         Task SaveChangesAsync();
     }
 }

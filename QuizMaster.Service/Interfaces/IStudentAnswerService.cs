@@ -1,12 +1,11 @@
-﻿using QuizMaster.Domain.Entities;
+﻿using QuizMaster.Domain.DTOs.Attempts;
 
 namespace QuizMaster.Service.Interfaces;
 
 public interface IStudentAnswerService
 {
-    Task<List<StudentAnswer>> GetAllAsync();
-    Task<StudentAnswer?> GetByIdAsync(int id);
-    Task AddAsync(StudentAnswer studentAnswer);
-    Task<bool> UpdateAsync(StudentAnswer studentAnswer);
-    Task<bool> DeleteAsync(int id);
+    Task<bool> SubmitAnswerAsync(
+        int attemptId,
+        int userId,
+        SubmitAnswerDTO dto);
 }

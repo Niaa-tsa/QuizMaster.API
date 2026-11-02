@@ -7,6 +7,7 @@ namespace QuizMaster.Service.Interfaces.Repositories
         Task AddUserAsync(User user);
         Task<ICollection<User>> GetAllUsersAsync();
         Task<User?> GetUserByIdAsync(int id);
+        Task<User?> GetUserByEmailAsync(string email);
         Task UpdateUserAsync(int id, User user);
         Task DeleteUserAsync(int id);
         Task SaveChangesAsync();

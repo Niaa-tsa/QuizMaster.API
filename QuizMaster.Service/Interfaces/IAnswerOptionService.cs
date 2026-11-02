@@ -6,7 +6,7 @@ public interface IAnswerOptionService
 {
     Task<List<AnswerOption>> GetAllAsync();
     Task<AnswerOption?> GetByIdAsync(int id);
-    Task AddAsync(AnswerOption answerOption);
+    Task<bool> AddAsync(AnswerOption answerOption);
     Task<bool> UpdateAsync(AnswerOption answerOption);
     Task<bool> DeleteAsync(int id);
 }

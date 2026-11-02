@@ -8,10 +8,14 @@ namespace QuizMaster.Service.Services;
 public class AnswerOptionService : IAnswerOptionService
 {
     private readonly IAnswerOptionRepository _repository;
+    private readonly IStudentAnswerRepository _studentAnswerRepository;
 
-    public AnswerOptionService(IAnswerOptionRepository repository)
+    public AnswerOptionService(
+     IAnswerOptionRepository repository,
+     IStudentAnswerRepository studentAnswerRepository)
     {
         _repository = repository;
+        _studentAnswerRepository = studentAnswerRepository;
     }
 
     public async Task<List<AnswerOption>> GetAllAsync()
@@ -27,10 +31,18 @@ public class AnswerOptionService : IAnswerOptionService
         return _repository.GetAnswerOptionByIdAsync(id);
     }
 
-    public async Task AddAsync(AnswerOption answerOption)
+    public async Task<bool> AddAsync(AnswerOption answerOption)
     {
+        var hasAnswers = await _studentAnswerRepository
+            .HasAnswersForQuestionAsync(answerOption.QuestionId);
+
+        if (hasAnswers)
+            return false;
+
         await _repository.AddAnswerOptionAsync(answerOption);
         await _repository.SaveChangesAsync();
+
+        return true;
     }
 
     public async Task<bool> UpdateAsync(AnswerOption answerOption)
@@ -38,11 +50,13 @@ public class AnswerOptionService : IAnswerOptionService
         var existingOption =
             await _repository.GetAnswerOptionByIdAsync(answerOption.Id);
 
-        if (existingOption is null)
+        if (existingOption == null)
+            return false;
+        if (await _studentAnswerRepository.HasAnswersForOptionAsync(answerOption.Id))
             return false;
 
-        await _repository.UpdateAnswerOptionAsync(
-            answerOption.Id, answerOption);
+        existingOption.Text = answerOption.Text;
+        existingOption.IsCorrect = answerOption.IsCorrect;
 
         await _repository.SaveChangesAsync();
 
@@ -54,7 +68,9 @@ public class AnswerOptionService : IAnswerOptionService
         var answerOption =
             await _repository.GetAnswerOptionByIdAsync(id);
 
-        if (answerOption is null)
+        if (answerOption == null)
+            return false;
+        if (await _studentAnswerRepository.HasAnswersForOptionAsync(id))
             return false;
 
         await _repository.DeleteAnswerOptionAsync(id);

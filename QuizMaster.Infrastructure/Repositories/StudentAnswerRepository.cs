@@ -19,47 +19,26 @@ namespace QuizMaster.Infrastructure.Repositories
             await _context.StudentAnswers.AddAsync(studentAnswer);
         }
 
-        public async Task<ICollection<StudentAnswer>> GetAllStudentAnswersAsync()
+        public async Task<ICollection<StudentAnswer>> GetAnswersByAttemptAndQuestionAsync(
+            int attemptId,
+            int questionId)
         {
             return await _context.StudentAnswers
-                .Include(a => a.Question)
-                .Include(a => a.AnswerOption)
+                .Where(a => a.AttemptId == attemptId &&
+                            a.QuestionId == questionId)
                 .ToListAsync();
         }
 
-        public async Task<StudentAnswer?> GetStudentAnswerByIdAsync(int id)
+        public async Task<bool> HasAnswersForQuestionAsync(int questionId)
         {
             return await _context.StudentAnswers
-                .Include(a => a.Question)
-                .Include(a => a.AnswerOption)
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .AnyAsync(a => a.QuestionId == questionId);
         }
 
-        public async Task UpdateStudentAnswerAsync(
-    int id, StudentAnswer studentAnswer)
+        public async Task<bool> HasAnswersForOptionAsync(int answerOptionId)
         {
-            var existingAnswer = await _context.StudentAnswers
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (existingAnswer == null)
-            {
-                throw new ArgumentException("Student answer not found");
-            }
-
-            existingAnswer.AttemptId = studentAnswer.AttemptId;
-            existingAnswer.QuestionId = studentAnswer.QuestionId;
-            existingAnswer.AnswerOptionId = studentAnswer.AnswerOptionId;
-        }
-
-        public async Task DeleteStudentAnswerAsync(int id)
-        {
-            var studentAnswer = await _context.StudentAnswers
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (studentAnswer == null)
-                throw new ArgumentException("Student answer not found");
-
-            _context.StudentAnswers.Remove(studentAnswer);
+            return await _context.StudentAnswers
+                .AnyAsync(a => a.AnswerOptionId == answerOptionId);
         }
 
         public async Task SaveChangesAsync()

@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace QuizMaster.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Lecturer")]
 public class RoleController : ControllerBase
 {
     private readonly IRoleService _service;
