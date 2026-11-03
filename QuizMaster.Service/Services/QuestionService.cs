@@ -28,7 +28,12 @@ public class QuestionService : IQuestionService
     {
         return _repository.GetQuestionByIdAsync(id);
     }
+    public async Task<List<Question>> GetByQuizIdAsync(int quizId)
+    {
+        var questions = await _repository.GetQuestionsByQuizIdAsync(quizId);
 
+        return questions.ToList();
+    }
     public async Task AddAsync(Question question)
     {
         await _repository.AddQuestionAsync(question);

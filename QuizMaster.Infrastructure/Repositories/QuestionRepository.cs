@@ -25,7 +25,13 @@ namespace QuizMaster.Infrastructure.Repositories
                 .Include(q => q.AnswerOptions)
                 .ToListAsync();
         }
-
+        public async Task<ICollection<Question>> GetQuestionsByQuizIdAsync(int quizId)
+        {
+            return await _context.Questions
+                .Include(q => q.AnswerOptions)
+                .Where(q => q.QuizId == quizId)
+                .ToListAsync();
+        }
         public async Task<Question?> GetQuestionByIdAsync(int id)
         {
             return await _context.Questions

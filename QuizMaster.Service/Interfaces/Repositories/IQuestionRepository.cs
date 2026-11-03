@@ -8,6 +8,7 @@ namespace QuizMaster.Service.Interfaces.Repositories
         Task<ICollection<Question>> GetAllQuestionsAsync();
         Task<Question?> GetQuestionByIdAsync(int id);
         Task UpdateQuestionAsync(int id, Question question);
+        Task<ICollection<Question>> GetQuestionsByQuizIdAsync(int quizId);
         Task DeleteQuestionAsync(int id);
         Task SaveChangesAsync();
     }

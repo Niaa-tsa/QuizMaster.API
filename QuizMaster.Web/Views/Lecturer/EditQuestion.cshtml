@@ -1,0 +1,114 @@
+﻿@model QuizMaster.Web.Models.EditQuestionViewModel
+
+@{
+    ViewData["Title"] = "Edit Question";
+}
+
+<div class="container mt-5">
+    <h1 class="fw-bold">Edit Question</h1>
+    <p class="text-muted">Update your question and answer options.</p>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-body">
+
+            <form asp-action="EditQuestion" method="post">
+
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="QuizId" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Text" class="form-label">
+                        Question
+                    </label>
+
+                    <textarea asp-for="Text"
+                              class="form-control"
+                              rows="3"></textarea>
+
+                    <span asp-validation-for="Text"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Type" class="form-label">
+                        Question Type
+                    </label>
+
+                    <select asp-for="Type"
+                            class="form-select"
+                            asp-items="Html.GetEnumSelectList<QuizMaster.Domain.Enums.QuestionType>()">
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Points" class="form-label">
+                        Points
+                    </label>
+
+                    <input asp-for="Points"
+                           type="number"
+                           step="0.1"
+                           min="0.1"
+                           max="100"
+                           class="form-control" />
+
+                    <span asp-validation-for="Points"
+                          class="text-danger"></span>
+                </div>
+
+                <h5 class="mt-4">Answer Options</h5>
+
+                @for (int i = 0; i < Model.AnswerOptions.Count; i++)
+                {
+                    <div class="card p-3 mb-3">
+
+                        <input type="hidden"
+                               asp-for="AnswerOptions[i].Id" />
+
+                        <div class="mb-2">
+                            <label class="form-label">
+                                Option @(i + 1)
+                            </label>
+
+                            <input asp-for="AnswerOptions[i].Text"
+                                   class="form-control" />
+
+                            <span asp-validation-for="AnswerOptions[i].Text"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check">
+                            <input asp-for="AnswerOptions[i].IsCorrect"
+                                   class="form-check-input" />
+
+                            <label asp-for="AnswerOptions[i].IsCorrect"
+                                   class="form-check-label">
+                                Correct Answer
+                            </label>
+                        </div>
+
+                    </div>
+                }
+
+                <button type="submit" class="btn btn-primary">
+                    Save Changes
+                </button>
+
+                <a asp-controller="Lecturer"
+                   asp-action="Questions"
+                   asp-route-quizId="@Model.QuizId"
+                   class="btn btn-outline-secondary ms-2">
+                    Cancel
+                </a>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
