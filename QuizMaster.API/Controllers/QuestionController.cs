@@ -1,9 +1,9 @@
 ﻿
-using Microsoft.AspNetCore.Mvc;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
-using QuizMaster.Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Questions;
-using QuizMaster.Domain.Enums;
+using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
 
 namespace QuizMaster.API.Controllers;
@@ -15,15 +15,20 @@ public class QuestionController : ControllerBase
 {
     private readonly IQuestionService _questionService;
     private readonly IQuizService _quizService;
+    private readonly IValidator<CreateQuestionDTO> _createValidator;
+    private readonly IValidator<UpdateQuestionDTO> _updateValidator;
 
     public QuestionController(
         IQuestionService questionService,
-        IQuizService quizService)
+        IQuizService quizService,
+        IValidator<CreateQuestionDTO> createValidator,
+        IValidator<UpdateQuestionDTO> updateValidator)
     {
         _questionService = questionService;
         _quizService = quizService;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
     }
-
     // ყველა კითხვის მიღება
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -79,6 +84,11 @@ public class QuestionController : ControllerBase
         [FromBody] CreateQuestionDTO dto,
         [FromQuery] int quizId)
     {
+        var validation = await _createValidator.ValidateAsync(dto);
+
+        if (!validation.IsValid)
+            return ValidationProblem(
+                new ValidationProblemDetails(validation.ToDictionary()));
         var quiz = await _quizService.GetByIdAsync(quizId);
 
         if (quiz == null)
@@ -105,8 +115,7 @@ public class QuestionController : ControllerBase
                 }).ToList()
         };
 
-        if (!IsValidQuestion(question))
-            return BadRequest("Invalid answer options for this question type.");
+     
 
         await _questionService.AddAsync(question);
 
@@ -114,11 +123,18 @@ public class QuestionController : ControllerBase
     }
 
     // კითხვის განახლება
+    // კითხვის განახლება
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(
         int id,
         [FromBody] UpdateQuestionDTO dto)
     {
+        var validation = await _updateValidator.ValidateAsync(dto);
+
+        if (!validation.IsValid)
+            return ValidationProblem(
+                new ValidationProblemDetails(validation.ToDictionary()));
+
         var question = await _questionService.GetByIdAsync(id);
 
         if (question == null)
@@ -131,13 +147,12 @@ public class QuestionController : ControllerBase
 
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
+
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
             return BadRequest(
                 "Cannot modify a quiz that students have already attempted.");
-        if (!IsValidQuestionOptions(dto.Type, dto.AnswerOptions))
-            return BadRequest("Invalid answer options for this question type.");
 
         var updatedQuestion = new Question
         {
@@ -190,35 +205,7 @@ public class QuestionController : ControllerBase
                 "Question cannot be deleted because students have already answered it.");
 
         return Ok(new { message = "Question deleted successfully." });
-    }
-
-    private bool IsValidQuestion(Question question)
-    {
-        return IsValidQuestionOptions(
-            question.Type,
-            question.AnswerOptions.Select(a =>
-                new AnswerOptionDTO
-                {
-                    Text = a.Text,
-                    IsCorrect = a.IsCorrect
-                }).ToList());
-    }
-
-    private bool IsValidQuestionOptions(
-        QuestionType type,
-        List<AnswerOptionDTO> options)
-    {
-        if (options.Count < 2)
-            return false;
-
-        int correctCount = options.Count(o => o.IsCorrect);
-
-        return type switch
-        {
-            QuestionType.SingleChoice => correctCount == 1,
-            QuestionType.MultipleChoice => correctCount >= 1,
-            QuestionType.TrueFalse => options.Count == 2 && correctCount == 1,
-            _ => false
-        };
+ 
+    
     }
 }

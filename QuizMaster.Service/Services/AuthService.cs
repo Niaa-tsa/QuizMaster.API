@@ -16,18 +16,17 @@ public class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
-    private readonly IConfiguration _configuration;
-
+    private readonly IJwtTokenService _jwtTokenService;
     public AuthService(
         IUserRepository userRepository,
         IRoleRepository roleRepository,
         IPasswordHasher<User> passwordHasher,
-        IConfiguration configuration)
+        IJwtTokenService jwtTokenService)
     {
         _userRepository = userRepository;
         _roleRepository = roleRepository;
         _passwordHasher = passwordHasher;
-        _configuration = configuration;
+        _jwtTokenService = jwtTokenService;
     }
 
     public async Task<AuthResponseDTO> RegisterAsync(
@@ -93,42 +92,8 @@ public class AuthService : IAuthService
 
     private AuthResponseDTO CreateAuthResponse(User user)
     {
-        var key = _configuration["Jwt:Key"]
-            ?? throw new InvalidOperationException("JWT Key is missing.");
-
-        var issuer = _configuration["Jwt:Issuer"]
-            ?? throw new InvalidOperationException("JWT Issuer is missing.");
-
-        var audience = _configuration["Jwt:Audience"]
-            ?? throw new InvalidOperationException("JWT Audience is missing.");
-
-        var expirationMinutes = int.Parse(
-            _configuration["Jwt:ExpirationMinutes"] ?? "60");
-
         var roleName = user.Role?.Name
             ?? throw new InvalidOperationException("User role is missing.");
-
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Name, user.UserName),
-            new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, roleName)
-        };
-
-        var signingKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(key));
-
-        var credentials = new SigningCredentials(
-            signingKey, SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
-            signingCredentials: credentials);
 
         return new AuthResponseDTO
         {
@@ -136,7 +101,7 @@ public class AuthService : IAuthService
             UserName = user.UserName,
             Email = user.Email,
             Role = roleName,
-            Token = new JwtSecurityTokenHandler().WriteToken(token)
+            Token = _jwtTokenService.GenerateToken(user)
         };
     }
 }

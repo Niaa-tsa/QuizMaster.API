@@ -1,4 +1,5 @@
-﻿using QuizMaster.Domain.Entities;
+﻿using QuizMaster.Domain.DTOs.Quizzes;
+using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 
@@ -10,17 +11,20 @@ public class QuizAttemptService : IQuizAttemptService
     private readonly IQuizRepository _quizRepository;
     private readonly IStudentAnswerRepository _studentAnswerRepository;
     private readonly IQuizResultRepository _quizResultRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public QuizAttemptService(
-        IQuizAttemptRepository repository,
-        IQuizRepository quizRepository,
-        IStudentAnswerRepository studentAnswerRepository,
-        IQuizResultRepository quizResultRepository)
+    IQuizAttemptRepository repository,
+    IQuizRepository quizRepository,
+    IStudentAnswerRepository studentAnswerRepository,
+    IQuizResultRepository quizResultRepository,
+    IUnitOfWork unitOfWork)
     {
         _repository = repository;
         _quizRepository = quizRepository;
         _studentAnswerRepository = studentAnswerRepository;
         _quizResultRepository = quizResultRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<QuizAttempt?> GetStudentAttemptAsync(
@@ -55,7 +59,7 @@ public class QuizAttemptService : IQuizAttemptService
         };
 
         await _repository.AddQuizAttemptAsync(attempt);
-        await _repository.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync();
 
         return attempt;
     }
@@ -113,13 +117,18 @@ public class QuizAttemptService : IQuizAttemptService
 
         await _quizResultRepository.AddQuizResultAsync(result);
 
+        var deadline = attempt.StartedAt.AddMinutes(
+      attempt.Quiz.TimeLimitMinutes);
+
+        var now = DateTime.UtcNow;
+
         attempt.Status = "Finished";
-        attempt.FinishedAt = DateTime.UtcNow;
+        attempt.FinishedAt = now > deadline ? deadline : now;
 
         await _repository.UpdateQuizAttemptAsync(
-            attempt.Id, attempt);
+     attempt.Id, attempt);
 
-        await _repository.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync();
 
         return result;
     }
@@ -131,5 +140,48 @@ public class QuizAttemptService : IQuizAttemptService
             await _repository.GetStudentAttemptsAsync(userId);
 
         return attempts.ToList();
+    }
+    public async Task<List<LeaderboardEntryDTO>?> GetLeaderboardAsync(
+    int quizId,
+    int page,
+    int pageSize)
+    {
+        var quiz = await _quizRepository.GetQuizByIdAsync(quizId);
+
+        if (quiz == null)
+            return null;
+
+        var results = await _quizResultRepository
+            .GetLeaderboardAsync(quizId, page, pageSize);
+
+        var startRank = (page - 1) * pageSize;
+
+        return results
+            .Select((r, index) => new LeaderboardEntryDTO
+            {
+                Rank = startRank + index + 1,
+                UserName = r.QuizAttempt.User.UserName,
+                Score = r.Score,
+                MaxScore = r.MaxScore,
+                FinishedAt = r.QuizAttempt.FinishedAt.GetValueOrDefault()
+            })
+            .ToList();
+    }
+    public async Task<QuizStatisticsDTO?> GetQuizStatisticsAsync(int quizId)
+    {
+        var quiz = await _quizRepository.GetQuizByIdAsync(quizId);
+
+        if (quiz == null)
+            return null;
+
+        var statistics = await _quizResultRepository
+            .GetQuizStatisticsAsync(quizId);
+
+        if (statistics == null)
+            return new QuizStatisticsDTO { QuizId = quizId };
+
+        statistics.AverageScore = Math.Round(statistics.AverageScore, 2);
+
+        return statistics;
     }
 }

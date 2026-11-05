@@ -1,12 +1,17 @@
 
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using QuizMaster.API.Middleware;
+using QuizMaster.API.Seed;
 using QuizMaster.Domain.Entities;
 using QuizMaster.Infrastructure.Data;
+using QuizMaster.Infrastructure.Identity;
 using QuizMaster.Infrastructure.Repositories;
+using QuizMaster.Infrastructure.Validators;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 using QuizMaster.Service.Services;
@@ -16,6 +21,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
 builder.Services.AddControllers();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateQuestionDTOValidator>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 
 // Swagger + JWT Authorization
@@ -57,10 +65,11 @@ builder.Services.AddScoped<IAnswerOptionRepository, AnswerOptionRepository>();
 builder.Services.AddScoped<IQuizAttemptRepository, QuizAttemptRepository>();
 builder.Services.AddScoped<IStudentAnswerRepository, StudentAnswerRepository>();
 builder.Services.AddScoped<IQuizResultRepository, QuizResultRepository>();
-
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Password hasher and authentication service
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // Service registrations
 builder.Services.AddScoped<IRoleService, RoleService>();
@@ -115,7 +124,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+await DbSeeder.SeedAsync(app.Services);
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 
 // Authentication must come before Authorization
