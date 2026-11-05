@@ -12,7 +12,7 @@ using QuizMaster.Service.Interfaces.Repositories;
 using QuizMaster.Service.Services;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);  
 
 // Controllers
 builder.Services.AddControllers();
