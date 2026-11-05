@@ -3,4 +3,5 @@
   <Project Path="QuizMaster.Domain/QuizMaster.Domain.csproj" />
   <Project Path="QuizMaster.Infrastructure/QuizMaster.Infrastructure.csproj" />
   <Project Path="QuizMaster.Service/QuizMaster.Service.csproj" />
+  <Project Path="QuizMaster.Tests/QuizMaster.Tests.csproj" Id="5546931d-0597-4e9f-a19b-b0d2fda2b282" />
 </Solution>

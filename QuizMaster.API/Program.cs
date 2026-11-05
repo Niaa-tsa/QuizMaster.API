@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using QuizMaster.API.Middleware;
@@ -46,8 +47,12 @@ builder.Services.AddSwaggerGen(options =>
         {
             [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document)] = []
         });
-});
 
+    // XML დოკუმენტაციის ჩართვა Swagger UI-ში
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
+});
 
 
 // Database
@@ -118,6 +123,15 @@ builder.Services.AddAuthorization();
 // Build application
 var app = builder.Build();
 
+
+app.UseStaticFiles();
+
+app.UseRouting();
+
+
+app.UseCors("AllowFrontend");
+
+
 // Swagger
 if (app.Environment.IsDevelopment())
 {
@@ -127,6 +141,8 @@ if (app.Environment.IsDevelopment())
 await DbSeeder.SeedAsync(app.Services);
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
+
+
 
 // Authentication must come before Authorization
 app.UseAuthentication();

@@ -14,7 +14,9 @@ public class AuthController : ControllerBase
     {
         _authService = authService;
     }
-
+    /// <summary>
+    /// დარეგისტრირებას უკეთებს ახალ სტუდენტს სისტემაში.
+    /// </summary>
     [HttpPost("register")]
     public async Task<IActionResult> Register(
         RegisterRequestDTO request)
@@ -29,7 +31,9 @@ public class AuthController : ControllerBase
             return Conflict(new { message = ex.Message });
         }
     }
-
+    /// <summary>
+    /// ახდენს მომხმარებლის ავტორიზაციას და აბრუნებს JWT ტოკენს.
+    /// </summary>
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         LoginRequestDTO request)

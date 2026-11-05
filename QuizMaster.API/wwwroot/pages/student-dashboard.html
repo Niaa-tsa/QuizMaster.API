@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <title>სტუდენტის პანელი - QuizMaster</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <div class="app-container">
+        <div style="padding: 2rem;">
+            <h1>სტუდენტის პანელი (Student Dashboard)</h1>
+            <p>მოგესალმებით, თქვენ წარმატებით გაიარეთ ავტორიზაცია როგორც სტუდენტმა.</p>
+            <button id="logout-btn" class="btn" style="margin-top: 2rem; background: #ef4444;">გასვლა</button>
+        </div>
+    </div>
+    <script type="module">
+        import { auth } from '../js/auth.js';
+        document.getElementById('logout-btn').addEventListener('click', () => auth.logout());
+    </script>
+</body>
+</html>

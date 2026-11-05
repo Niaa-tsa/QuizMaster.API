@@ -22,7 +22,9 @@ public class StudentQuizzesController : ControllerBase
         _quizService = quizService;
         _attemptService = attemptService;
     }
-
+    /// <summary>
+    /// აბრუნებს ყველა გამოქვეყნებული ტესტის სიას სტუდენტებისთვის.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetPublishedQuizzes()
     {
@@ -39,7 +41,10 @@ public class StudentQuizzesController : ControllerBase
 
         return Ok(response);
     }
-
+    /// <summary>
+    /// იწყებს ახალ მცდელობას მითითებულ ტესტზე.
+    /// </summary>
+    /// <param name="quizId">ტესტის ID</param>
     [HttpPost("{quizId:int}/start")]
     public async Task<IActionResult> StartQuiz(int quizId)
     {
@@ -73,6 +78,10 @@ public class StudentQuizzesController : ControllerBase
             attempt.Status
         });
     }
+    /// <summary>
+    /// აბრუნებს მიმდინარე მცდელობის კითხვებს (სწორი პასუხების გარეშე).
+    /// </summary>
+    /// <param name="attemptId">მცდელობის ID</param>
     [HttpGet("attempt/{attemptId:int}/questions")]
     public async Task<IActionResult> GetAttemptQuestions(int attemptId)
     {
@@ -135,6 +144,11 @@ public class StudentQuizzesController : ControllerBase
 
         return Ok(response);
     }
+
+    /// <summary>
+    /// ასრულებს ტესტის მცდელობას და ითვლის საბოლოო ქულას.
+    /// </summary>
+    /// <param name="attemptId">მცდელობის ID</param>
     [HttpPost("attempt/{attemptId:int}/finish")]
     public async Task<IActionResult> FinishQuiz(int attemptId)
     {
@@ -165,6 +179,9 @@ public class StudentQuizzesController : ControllerBase
                 : 0
         });
     }
+    /// <summary>
+    /// აბრუნებს ავტორიზებული სტუდენტის მცდელობების ისტორიას.
+    /// </summary>
     [HttpGet("history")]
     public async Task<IActionResult> GetHistory()
     {

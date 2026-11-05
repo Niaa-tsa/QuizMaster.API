@@ -18,7 +18,9 @@ public class QuizController : ControllerBase
     {
         _quizService = quizService;
     }
-
+    /// <summary>
+    /// აბრუნებს ყველა ტესტის სიას (ლექტორისთვის).
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -35,7 +37,10 @@ public class QuizController : ControllerBase
 
         return Ok(response);
     }
-
+    /// <summary>
+    /// აბრუნებს კონკრეტულ ტესტს ID-ის მიხედვით.
+    /// </summary>
+    /// <param name="id">ტესტის ID</param>
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -57,7 +62,9 @@ public class QuizController : ControllerBase
 
         return Ok(response);
     }
-
+    /// <summary>
+    /// ქმნის ახალ ტესტს.
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create(
         [FromBody] CreateQuizDTO request)
@@ -85,7 +92,9 @@ public class QuizController : ControllerBase
             new { id = quiz.Id },
             response);
     }
-
+    /// <summary>
+    /// ანახლებს არსებული ტესტის მონაცემებს (თუ გამოქვეყნებული არ არის).
+    /// </summary>
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(
         int id,
@@ -127,6 +136,9 @@ public class QuizController : ControllerBase
 
         return Ok(response);
     }
+    /// <summary>
+    /// შლის ტესტს (თუ არ აქვს მცდელობები და არ არის გამოქვეყნებული).
+    /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -151,6 +163,9 @@ public class QuizController : ControllerBase
 
         return NoContent();
     }
+    /// <summary>
+    /// აქვეყნებს ტესტს სტუდენტებისთვის ხელმისაწვდომად.
+    /// </summary>
     [HttpPatch("{id:int}/publish")]
     public async Task<IActionResult> Publish(int id)
     {
@@ -181,7 +196,9 @@ public class QuizController : ControllerBase
 
         return Ok(new { message = "Quiz published successfully." });
     }
-
+    /// <summary>
+    /// ხურავს გამოქვეყნებულ ტესტს.
+    /// </summary>
     [HttpPatch("{id:int}/close")]
     public async Task<IActionResult> Close(int id)
     {

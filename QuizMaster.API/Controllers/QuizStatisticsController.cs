@@ -15,7 +15,9 @@ public class QuizStatisticsController : ControllerBase
     {
         _attemptService = attemptService;
     }
-
+    /// <summary>
+    /// აბრუნებს ტესტის სტატისტიკას (საშუალო ქულა, მცდელობების რაოდენობა და ა.შ.).
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetStatistics(int quizId)
     {

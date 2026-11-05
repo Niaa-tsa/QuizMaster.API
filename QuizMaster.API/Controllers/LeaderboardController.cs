@@ -15,7 +15,9 @@ public class LeaderboardController : ControllerBase
     {
         _attemptService = attemptService;
     }
-
+    /// <summary>
+    /// აბრუნებს ტესტის ლიდერბორდს (საუკეთესო შედეგების რეიტინგს).
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetLeaderboard(
         int quizId,
