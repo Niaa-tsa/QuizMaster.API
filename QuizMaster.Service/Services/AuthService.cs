@@ -17,6 +17,7 @@ public class AuthService : IAuthService
     private readonly IRoleRepository _roleRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+
     public AuthService(
         IUserRepository userRepository,
         IRoleRepository roleRepository,
@@ -33,7 +34,7 @@ public class AuthService : IAuthService
         RegisterRequestDTO request)
     {
         var existingUser = await _userRepository.GetUserByEmailAsync(
-    request.Email.Trim());
+            request.Email.Trim());
 
         if (existingUser != null)
         {
@@ -43,21 +44,24 @@ public class AuthService : IAuthService
 
         var roles = await _roleRepository.GetAllRolesAsync();
 
-        var studentRole = roles.FirstOrDefault(r =>
-            r.Name.Equals("Student",
+        // თუ მოთხოვნაში როლი მოჰყვება, ვიყენებთ მას, წინააღმდეგ შემთხვევაში ვტოვებთ Student-ს
+        var requestedRoleName = !string.IsNullOrEmpty(request.Role) ? request.Role : "Student";
+
+        var targetRole = roles.FirstOrDefault(r =>
+            r.Name.Equals(requestedRoleName,
                 StringComparison.OrdinalIgnoreCase));
 
-        if (studentRole is null)
+        if (targetRole is null)
         {
             throw new InvalidOperationException(
-                "Student role was not found in the database.");
+                $"Role '{requestedRoleName}' was not found in the database.");
         }
 
         var user = new User
         {
             UserName = request.UserName.Trim(),
             Email = request.Email.Trim(),
-            RoleId = studentRole.Id
+            RoleId = targetRole.Id
         };
 
         user.PasswordHash =
@@ -66,7 +70,7 @@ public class AuthService : IAuthService
         await _userRepository.AddUserAsync(user);
         await _userRepository.SaveChangesAsync();
 
-        user.Role = studentRole;
+        user.Role = targetRole;
 
         return CreateAuthResponse(user);
     }
@@ -75,7 +79,7 @@ public class AuthService : IAuthService
         LoginRequestDTO request)
     {
         var user = await _userRepository.GetUserByEmailAsync(
-     request.Email.Trim());
+            request.Email.Trim());
 
         if (user is null)
             return null;

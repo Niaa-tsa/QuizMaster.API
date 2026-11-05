@@ -6,6 +6,9 @@ using System.Security.Claims;
 
 namespace QuizMaster.API.Controllers;
 
+/// <summary>
+/// მართავს სტუდენტის პასუხებს.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Student")]
@@ -19,6 +22,9 @@ public class StudentAnswersController : ControllerBase
         _studentAnswerService = studentAnswerService;
     }
 
+    /// <summary>
+    /// აგზავნის სტუდენტის პასუხს კონკრეტულ მცდელობაზე.
+    /// </summary>
     [HttpPost("attempt/{attemptId:int}/submit")]
     public async Task<IActionResult> SubmitAnswer(
         int attemptId,

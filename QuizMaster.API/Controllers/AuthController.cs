@@ -15,7 +15,7 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
     /// <summary>
-    /// დარეგისტრირებას უკეთებს ახალ სტუდენტს სისტემაში.
+    /// არეგისტრირებს მომხმარებელს.
     /// </summary>
     [HttpPost("register")]
     public async Task<IActionResult> Register(

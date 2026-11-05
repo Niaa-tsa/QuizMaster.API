@@ -1,11 +1,14 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Questions;
 using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
+
 namespace QuizMaster.API.Controllers;
 
+/// <summary>
+/// მართავს პასუხების ვარიანტებს.
+/// </summary>
 [Route("api/[controller]")]
 [ApiController]
 [Authorize(Roles = "Lecturer")]
@@ -25,7 +28,9 @@ public class AnswerOptionController : ControllerBase
         _quizService = quizService;
     }
 
-    // პასუხების ვარიანტების მიღება
+    /// <summary>
+    /// აბრუნებს კითხვის პასუხების ვარიანტებს.
+    /// </summary>
     [HttpGet("question/{questionId}")]
     public async Task<IActionResult> GetByQuestion(int questionId)
     {
@@ -45,7 +50,9 @@ public class AnswerOptionController : ControllerBase
         return Ok(options);
     }
 
-    // პასუხის ვარიანტის დამატება
+    /// <summary>
+    /// ამატებს პასუხის ახალ ვარიანტს.
+    /// </summary>
     [HttpPost("question/{questionId}")]
     public async Task<IActionResult> Create(
         int questionId,
@@ -63,11 +70,13 @@ public class AnswerOptionController : ControllerBase
 
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
+
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
             return BadRequest(
                 "Cannot modify a quiz that students have already attempted.");
+
         var option = new AnswerOption
         {
             QuestionId = questionId,
@@ -84,7 +93,9 @@ public class AnswerOptionController : ControllerBase
         return Ok(new { message = "Answer option created successfully." });
     }
 
-    // პასუხის ვარიანტის განახლება
+    /// <summary>
+    /// ანახლებს პასუხის ვარიანტს.
+    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(
         int id,
@@ -107,11 +118,13 @@ public class AnswerOptionController : ControllerBase
 
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
+
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
             return BadRequest(
                 "Cannot modify a quiz that students have already attempted.");
+
         option.Text = dto.Text;
         option.IsCorrect = dto.IsCorrect;
 
@@ -124,7 +137,9 @@ public class AnswerOptionController : ControllerBase
         return Ok(new { message = "Answer option updated successfully." });
     }
 
-    // პასუხის ვარიანტის წაშლა
+    /// <summary>
+    /// შლის პასუხის ვარიანტს.
+    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -145,11 +160,13 @@ public class AnswerOptionController : ControllerBase
 
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
+
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
             return BadRequest(
                 "Cannot modify a quiz that students have already attempted.");
+
         var deleted = await _answerOptionService.DeleteAsync(id);
 
         if (!deleted)

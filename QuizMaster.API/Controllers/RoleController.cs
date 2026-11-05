@@ -1,11 +1,13 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 
 namespace QuizMaster.API.Controllers;
 
+/// <summary>
+/// მართავს მომხმარებლის როლებს.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Lecturer")]
@@ -18,12 +20,18 @@ public class RoleController : ControllerBase
         _service = service;
     }
 
+    /// <summary>
+    /// აბრუნებს ყველა როლს.
+    /// </summary>
     [HttpGet]
     public async Task<ActionResult<List<Role>>> GetAll()
     {
         return Ok(await _service.GetAllAsync());
     }
 
+    /// <summary>
+    /// აბრუნებს კონკრეტულ როლს.
+    /// </summary>
     [HttpGet("{id:int}")]
     public async Task<ActionResult<Role>> GetById(int id)
     {
@@ -35,6 +43,9 @@ public class RoleController : ControllerBase
         return Ok(role);
     }
 
+    /// <summary>
+    /// ამატებს ახალ როლს.
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create(Role role)
     {
@@ -42,6 +53,9 @@ public class RoleController : ControllerBase
         return Ok(role);
     }
 
+    /// <summary>
+    /// ანახლებს არსებულ როლს.
+    /// </summary>
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, Role role)
     {
@@ -56,6 +70,9 @@ public class RoleController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// შლის არსებულ როლს.
+    /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

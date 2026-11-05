@@ -1,5 +1,4 @@
-﻿
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Questions;
@@ -8,6 +7,9 @@ using QuizMaster.Service.Interfaces;
 
 namespace QuizMaster.API.Controllers;
 
+/// <summary>
+/// მართავს ქვიზის კითხვებს.
+/// </summary>
 [Route("api/[controller]")]
 [ApiController]
 [Authorize(Roles = "Lecturer")]
@@ -29,7 +31,10 @@ public class QuestionController : ControllerBase
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
-    // ყველა კითხვის მიღება
+
+    /// <summary>
+    /// აბრუნებს ყველა კითხვას.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -52,7 +57,9 @@ public class QuestionController : ControllerBase
         return Ok(result);
     }
 
-    // კონკრეტული კითხვის მიღება
+    /// <summary>
+    /// აბრუნებს კონკრეტულ კითხვას.
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -78,7 +85,9 @@ public class QuestionController : ControllerBase
         return Ok(result);
     }
 
-    // კითხვის დამატება
+    /// <summary>
+    /// ამატებს ახალ კითხვას ქვიზში.
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create(
         [FromBody] CreateQuestionDTO dto,
@@ -89,6 +98,7 @@ public class QuestionController : ControllerBase
         if (!validation.IsValid)
             return ValidationProblem(
                 new ValidationProblemDetails(validation.ToDictionary()));
+
         var quiz = await _quizService.GetByIdAsync(quizId);
 
         if (quiz == null)
@@ -96,11 +106,13 @@ public class QuestionController : ControllerBase
 
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
+
         var hasAttempts = await _quizService.HasAttemptsAsync(quizId);
 
         if (hasAttempts)
             return BadRequest(
                 "Cannot add questions because students have already attempted this quiz.");
+
         var question = new Question
         {
             QuizId = quizId,
@@ -115,15 +127,14 @@ public class QuestionController : ControllerBase
                 }).ToList()
         };
 
-     
-
         await _questionService.AddAsync(question);
 
         return Ok(new { message = "Question created successfully." });
     }
 
-    // კითხვის განახლება
-    // კითხვის განახლება
+    /// <summary>
+    /// ანახლებს არსებულ კითხვას.
+    /// </summary>
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(
         int id,
@@ -172,13 +183,17 @@ public class QuestionController : ControllerBase
         };
 
         var updated = await _questionService.UpdateAsync(updatedQuestion);
+
         if (!updated)
             return BadRequest(
                 "Question cannot be updated. Check answer option IDs or existing student answers.");
+
         return Ok(new { message = "Question updated successfully." });
     }
 
-    // კითხვის წაშლა
+    /// <summary>
+    /// შლის არსებულ კითხვას.
+    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -194,18 +209,19 @@ public class QuestionController : ControllerBase
 
         if (quiz.IsPublished)
             return BadRequest("Cannot delete a question from a published quiz.");
+
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
             return BadRequest(
                 "Cannot modify a quiz that students have already attempted.");
+
         var deleted = await _questionService.DeleteAsync(id);
+
         if (!deleted)
             return BadRequest(
                 "Question cannot be deleted because students have already answered it.");
 
         return Ok(new { message = "Question deleted successfully." });
- 
-    
     }
 }

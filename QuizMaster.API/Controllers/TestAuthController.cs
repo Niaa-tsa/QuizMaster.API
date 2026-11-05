@@ -1,14 +1,19 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace QuizMaster.API.Controllers;
 
+/// <summary>
+/// ამოწმებს მომხმარებლის ავტორიზაციას.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class TestAuthController : ControllerBase
 {
+    /// <summary>
+    /// ამოწმებს სტუდენტის ავტორიზაციას.
+    /// </summary>
     [HttpGet("student")]
     [Authorize(Roles = "Student")]
     public IActionResult StudentOnly()
@@ -22,6 +27,9 @@ public class TestAuthController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// ამოწმებს ლექტორის ავტორიზაციას.
+    /// </summary>
     [HttpGet("lecturer")]
     [Authorize(Roles = "Lecturer")]
     public IActionResult LecturerOnly()

@@ -1,36 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuizMaster - Loading</title>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/components.css">
-</head>
-<body>
-    <div class="app-container" style="justify-content: center; align-items: center; height: 100vh;">
-        <div class="loading-state">
-            <div class="spinner"></div>
-            <p>Loading QuizMaster...</p>
-        </div>
-    </div>
-
-    <script type="module">
-        import { auth } from './js/auth.js';
-
-        window.addEventListener('DOMContentLoaded', () => {
-            if (!auth.isAuthenticated()) {
-                window.location.href = 'pages/login.html';
-            } else {
-                const user = auth.getUser();
-                const role = user && user.role ? user.role.toLowerCase() : 'student';
-                if (role === 'lecturer' || role === 'admin') {
-                    window.location.href = 'pages/lecturer-dashboard.html';
-                } else {
-                    window.location.href = 'pages/student-dashboard.html';
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QuizMaster</title><link rel="stylesheet" href="css/main.css"></head>
+<body class="auth">
+<aside><div class="brand">QuizMaster</div><nav id="nav"></nav><div id="user"></div></aside>
+<main><div id="view" style="width:100%"></div></main>
+<div id="toasts"></div>
+<script type="module" src="js/app.js"></script>
+</body></html>
