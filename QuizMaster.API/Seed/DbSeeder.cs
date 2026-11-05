@@ -20,8 +20,8 @@ public static class DbSeeder
 
         await context.Database.MigrateAsync();
 
-        var email = configuration["Seed:LecturerEmail"];
-        var password = configuration["Seed:LecturerPassword"];
+        var email = configuration["Seed:Lecturer@gmail.com"];
+        var password = configuration["Seed:Pass123."];
 
         if (string.IsNullOrWhiteSpace(email) ||
             string.IsNullOrWhiteSpace(password))

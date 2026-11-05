@@ -1,4 +1,3 @@
-
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -18,18 +17,27 @@ using QuizMaster.Service.Interfaces.Repositories;
 using QuizMaster.Service.Services;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);  
+var builder = WebApplication.CreateBuilder(args);
 
-// Controllers
+// Controllers & Validation
 builder.Services.AddControllers();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateQuestionDTOValidator>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500", "https://localhost:5001", "http://localhost:5000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // Swagger + JWT Authorization
-
-
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
@@ -48,12 +56,10 @@ builder.Services.AddSwaggerGen(options =>
             [new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document)] = []
         });
 
-    // XML დოკუმენტაციის ჩართვა Swagger UI-ში
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     options.IncludeXmlComments(xmlPath);
 });
-
 
 // Database
 builder.Services.AddDbContext<QuizMasterDbContext>(options =>
@@ -71,6 +77,7 @@ builder.Services.AddScoped<IQuizAttemptRepository, QuizAttemptRepository>();
 builder.Services.AddScoped<IStudentAnswerRepository, StudentAnswerRepository>();
 builder.Services.AddScoped<IQuizResultRepository, QuizResultRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 // Password hasher and authentication service
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -88,10 +95,8 @@ builder.Services.AddScoped<IStudentAnswerService, StudentAnswerService>();
 // JWT configuration
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("JWT Key is missing.");
-
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]
     ?? throw new InvalidOperationException("JWT Issuer is missing.");
-
 var jwtAudience = builder.Configuration["Jwt:Audience"]
     ?? throw new InvalidOperationException("JWT Audience is missing.");
 
@@ -120,33 +125,30 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// Build application
 var app = builder.Build();
 
+// Middleware Pipeline
+app.UseExceptionHandler();
 
-app.UseStaticFiles();
-
-app.UseRouting();
-
-
-app.UseCors("AllowFrontend");
-
-
-// Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-await DbSeeder.SeedAsync(app.Services);
-app.UseExceptionHandler();
+
 app.UseHttpsRedirection();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
+app.UseRouting();
 
-// Authentication must come before Authorization
+app.UseCors("AllowFrontend");
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+await DbSeeder.SeedAsync(app.Services);
 
 app.MapControllers();
 
