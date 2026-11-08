@@ -81,6 +81,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Password hasher and authentication service
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // Service registrations

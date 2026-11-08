@@ -53,6 +53,15 @@ public class QuizMasterDbContext : DbContext
             .WithMany(r => r.Users)
             .HasForeignKey(u => u.RoleId)
             .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(u => u.RequestedRole)
+                .HasMaxLength(50);
+
+            entity.Property(u => u.ApprovalStatus)
+                .HasMaxLength(20)
+                .IsRequired();
+        });
 
         // ROLE
         modelBuilder.Entity<Role>()

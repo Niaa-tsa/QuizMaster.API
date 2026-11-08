@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,57 +16,90 @@ public static class DbSeeder
 
         var context = scope.ServiceProvider
             .GetRequiredService<QuizMasterDbContext>();
+
         var hasher = scope.ServiceProvider
             .GetRequiredService<IPasswordHasher<User>>();
+
         var configuration = scope.ServiceProvider
             .GetRequiredService<IConfiguration>();
 
+        // Database migration
         await context.Database.MigrateAsync();
 
-        string[] roleNames = { "Admin", "Lecturer", "Student" };
+        // Create roles if they do not exist
+        string[] roleNames =
+        {
+            "Admin",
+            "Lecturer",
+            "Student"
+        };
+
         foreach (var roleName in roleNames)
         {
-            if (!await context.Roles.AnyAsync(r => r.Name == roleName))
+            var roleExists = await context.Roles
+                .AnyAsync(r => r.Name == roleName);
+
+            if (!roleExists)
             {
-                context.Roles.Add(new Role { Name = roleName });
+                context.Roles.Add(new Role
+                {
+                    Name = roleName
+                });
             }
         }
-        await context.SaveChangesAsync();
-
-        var lecturerEmail = configuration["Seed:LecturerEmail"] ?? "lecturer@quizmaster.com";
-        var lecturerPassword = configuration["Seed:LecturerPassword"]
-                               ?? configuration["Seed:LecturerPassword."]
-                               ?? "Lecturer123!";
-
-        if (!await context.Users.AnyAsync(u => u.Email == lecturerEmail))
-        {
-            var lecturerRole = await context.Roles.FirstAsync(r => r.Name == "Lecturer");
-            var lecturer = new User
-            {
-                UserName = "giorgi_lecturer",
-                Email = lecturerEmail,
-                RoleId = lecturerRole.Id
-            };
-            lecturer.PasswordHash = hasher.HashPassword(lecturer, lecturerPassword);
-            context.Users.Add(lecturer);
-        }
-
-        var adminEmail = configuration["Seed:AdminEmail"] ?? "admin@quizmaster.com";
-        var adminPassword = configuration["Seed:AdminPassword"] ?? "Admin123!";
-
-        if (!await context.Users.AnyAsync(u => u.Email == adminEmail))
-        {
-            var adminRole = await context.Roles.FirstAsync(r => r.Name == "Admin");
-            var admin = new User
-            {
-                UserName = "system_admin",
-                Email = adminEmail,
-                RoleId = adminRole.Id
-            };
-            admin.PasswordHash = hasher.HashPassword(admin, adminPassword);
-            context.Users.Add(admin);
-        }
 
         await context.SaveChangesAsync();
+
+        // Seed Admin
+        await SeedUserAsync(
+            context,
+            hasher,
+            "Admin",
+            "admin@quizmaster.com",
+            "Admin123!",
+            "system_admin");
+
+        // Seed Lecturer
+        await SeedUserAsync(
+            context,
+            hasher,
+            "Lecturer",
+            "lecturer@quizmaster.com",
+            "Lecturer123!",
+            "giorgi_lecturer");
+    }
+
+    private static async Task SeedUserAsync(
+     QuizMasterDbContext context,
+     IPasswordHasher<User> hasher,
+     string roleName,
+     string email,
+     string password,
+     string userName)
+    {
+        var userExists = await context.Users
+            .AnyAsync(u => u.Email == email);
+
+        if (userExists)
+            return;
+
+        var role = await context.Roles
+            .FirstOrDefaultAsync(r => r.Name == roleName);
+
+        if (role is null)
+            throw new InvalidOperationException(
+                $"{roleName} role was not found.");
+
+        var user = new User
+        {
+            UserName = userName,
+            Email = email,
+            RoleId = role.Id
+        };
+
+        user.PasswordHash =
+            hasher.HashPassword(user, password);
+
+        context.Users.Add(user);
     }
 }
