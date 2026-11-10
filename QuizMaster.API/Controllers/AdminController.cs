@@ -1,7 +1,9 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QuizMaster.Service.Services;
+using QuizMaster.Domain.DTOs.Admin;
+using QuizMaster.Service.Interfaces;
+
 
 namespace QuizMaster.API.Controllers;
 
@@ -10,9 +12,8 @@ namespace QuizMaster.API.Controllers;
 [Authorize(Roles = "Admin")]
 public class AdminController : ControllerBase
 {
-    private readonly AdminService _adminService;
-
-    public AdminController(AdminService adminService)
+    private readonly IAdminService _adminService;
+    public AdminController(IAdminService adminService)
     {
         _adminService = adminService;
     }
@@ -78,5 +79,27 @@ public class AdminController : ControllerBase
             message = "Lecturer request rejected successfully!"
         });
     }
+    /// <summary>
+    /// ცვლის მომხმარებლის როლს.
+    /// </summary>
+    [HttpPut("change-role/{userId}")]
+    public async Task<IActionResult> ChangeUserRole(
+        int userId,
+        [FromBody] ChangeUserRoleDTO dto)
+    {
+        var result = await _adminService.ChangeUserRoleAsync(
+            userId,
+            dto);
 
+        if (!result)
+        {
+            return BadRequest(
+                "User not found or invalid role.");
+        }
+
+        return Ok(new
+        {
+            message = "User role changed successfully!"
+        });
+    }
 }

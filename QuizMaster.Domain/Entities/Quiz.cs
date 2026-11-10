@@ -1,4 +1,5 @@
-﻿namespace QuizMaster.Domain.Entities;
+﻿
+namespace QuizMaster.Domain.Entities;
 
 public class Quiz
 {
@@ -7,6 +8,9 @@ public class Quiz
     public int TimeLimitMinutes { get; set; }
     public bool IsPublished { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public int? LecturerId { get; set; }
+    public User? Lecturer { get; set; }
 
     public ICollection<Question> Questions { get; set; }
         = new List<Question>();

@@ -15,4 +15,7 @@ public interface IQuizService
     Task<bool> HasAttemptsAsync(int quizId);
     Task<List<Quiz>> GetPublishedAsync();
 
+    Task<List<Quiz>> GetQuizzesByLecturerIdAsync(int lecturerId);
+
+
 }

@@ -39,7 +39,13 @@ namespace QuizMaster.Infrastructure.Repositories
                 .FirstOrDefaultAsync(q => q.Id == id);
         }
 
-
+        public async Task<ICollection<Question>> GetQuestionsByLecturerIdAsync(int lecturerId)
+        {
+            return await _context.Questions
+                .Include(q => q.AnswerOptions)
+                .Where(q => q.Quiz.LecturerId == lecturerId)
+                .ToListAsync();
+        }
         public async Task UpdateQuestionAsync(int id, Question question)
         {
             var existingQuestion = await _context.Questions

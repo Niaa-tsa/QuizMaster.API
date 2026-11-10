@@ -80,4 +80,10 @@ public class QuestionService : IQuestionService
 
         return true;
     }
+    public async Task<List<Question>> GetQuestionsByLecturerIdAsync(int lecturerId)
+    {
+        var questions = await _repository.GetQuestionsByLecturerIdAsync(lecturerId);
+
+        return questions.ToList();
+    }
 }

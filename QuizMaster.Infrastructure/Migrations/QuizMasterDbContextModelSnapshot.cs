@@ -95,6 +95,9 @@ namespace QuizMaster.Infrastructure.Migrations
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("LecturerId")
+                        .HasColumnType("int");
+
                     b.Property<int>("TimeLimitMinutes")
                         .HasColumnType("int");
 
@@ -104,6 +107,8 @@ namespace QuizMaster.Infrastructure.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LecturerId");
 
                     b.ToTable("Quizzes", t =>
                         {
@@ -309,6 +314,15 @@ namespace QuizMaster.Infrastructure.Migrations
                     b.Navigation("Quiz");
                 });
 
+            modelBuilder.Entity("QuizMaster.Domain.Entities.Quiz", b =>
+                {
+                    b.HasOne("QuizMaster.Domain.Entities.User", "Lecturer")
+                        .WithMany("CreatedQuizzes")
+                        .HasForeignKey("LecturerId");
+
+                    b.Navigation("Lecturer");
+                });
+
             modelBuilder.Entity("QuizMaster.Domain.Entities.QuizAttempt", b =>
                 {
                     b.HasOne("QuizMaster.Domain.Entities.Quiz", "Quiz")
@@ -403,6 +417,8 @@ namespace QuizMaster.Infrastructure.Migrations
 
             modelBuilder.Entity("QuizMaster.Domain.Entities.User", b =>
                 {
+                    b.Navigation("CreatedQuizzes");
+
                     b.Navigation("QuizAttempts");
                 });
 #pragma warning restore 612, 618

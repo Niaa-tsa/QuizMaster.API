@@ -1,10 +1,11 @@
 ﻿
 using QuizMaster.Domain.DTOs.Admin;
+using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 
 namespace QuizMaster.Service.Services;
 
-public class AdminService
+public class AdminService : IAdminService
 {
     private readonly IUserRepository _userRepository;
     private readonly IRoleRepository _roleRepository;
@@ -106,6 +107,45 @@ public class AdminService
 
         return true;
     }
+    public async Task<bool> ChangeUserRoleAsync(
+       int userId,
+       ChangeUserRoleDTO dto)
+    {
+        if (dto.Role == null ||
+            (!dto.Role.Equals("Student",
+                StringComparison.OrdinalIgnoreCase) &&
+             !dto.Role.Equals("Lecturer",
+                StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
 
+        var user = await _userRepository.GetUserByIdAsync(userId);
+
+        if (user == null)
+            return false;
+
+        if (user.Role.Name == "Admin")
+            return false;
+
+        var roles = await _roleRepository.GetAllRolesAsync();
+
+        var newRole = roles.FirstOrDefault(r =>
+            r.Name.Equals(
+                dto.Role,
+                StringComparison.OrdinalIgnoreCase));
+
+        if (newRole == null)
+            return false;
+
+        user.RoleId = newRole.Id;
+
+        user.RequestedRole = null;
+        user.ApprovalStatus = "Approved";
+
+        await _userRepository.SaveChangesAsync();
+
+        return true;
+    }
 
 }

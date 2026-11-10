@@ -7,16 +7,18 @@ namespace QuizMaster.Service.Services;
 
 public class QuizService : IQuizService
 {
+
     private readonly IQuizRepository _repository;
     private readonly IQuizAttemptRepository _attemptRepository;
 
     public QuizService(
-      IQuizRepository repository,
-      IQuizAttemptRepository attemptRepository)
+        IQuizRepository repository,
+        IQuizAttemptRepository attemptRepository)
     {
         _repository = repository;
         _attemptRepository = attemptRepository;
     }
+
     public async Task<List<Quiz>> GetAllAsync()
     {
         var quizzes = await _repository.GetAllQuizzesAsync();
@@ -121,5 +123,12 @@ public class QuizService : IQuizService
         return quizzes.ToList();
     }
 
+
+    public async Task<List<Quiz>> GetQuizzesByLecturerIdAsync(int lecturerId)
+    {
+        var quizzes = await _repository.GetQuizzesByLecturerIdAsync(lecturerId);
+
+        return quizzes.ToList();
+    }
 
 }

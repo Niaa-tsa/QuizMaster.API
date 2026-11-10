@@ -92,6 +92,7 @@ builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IAnswerOptionService, AnswerOptionService>();
 builder.Services.AddScoped<IQuizAttemptService, QuizAttemptService>();
 builder.Services.AddScoped<IStudentAnswerService, StudentAnswerService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 // JWT configuration
 var jwtKey = builder.Configuration["Jwt:Key"]

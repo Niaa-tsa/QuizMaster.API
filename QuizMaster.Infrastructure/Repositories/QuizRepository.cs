@@ -63,6 +63,14 @@ namespace QuizMaster.Infrastructure.Repositories
             _context.Quizzes.Remove(quiz);
         }
 
+        public async Task<ICollection<Quiz>> GetQuizzesByLecturerIdAsync(int lecturerId)
+        {
+            return await _context.Quizzes
+                .Where(q => q.LecturerId == lecturerId)
+                .Include(q => q.Questions)
+                .ToListAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Questions;
 using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
+using System.Security.Claims;
 
 namespace QuizMaster.API.Controllers;
 
@@ -33,12 +34,31 @@ public class QuestionController : ControllerBase
     }
 
     /// <summary>
+    /// ამოწმებს, ეკუთვნის თუ არა ქვიზი ავტორიზებულ ლექტორს.
+    /// </summary>
+    private bool IsQuizOwnedByCurrentLecturer(Quiz quiz)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return false;
+
+        return quiz.LecturerId == lecturerId;
+    }
+
+    /// <summary>
     /// აბრუნებს ყველა კითხვას.
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var questions = await _questionService.GetAllAsync();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
+        var questions = await _questionService
+            .GetQuestionsByLecturerIdAsync(lecturerId);
 
         var result = questions.Select(q => new QuestionResponseDTO
         {
@@ -67,6 +87,14 @@ public class QuestionController : ControllerBase
 
         if (question == null)
             return NotFound();
+
+        var quiz = await _quizService.GetByIdAsync(question.QuizId);
+
+        if (quiz == null)
+            return NotFound("Quiz not found.");
+
+        if (!IsQuizOwnedByCurrentLecturer(quiz))
+            return Forbid();
 
         var result = new QuestionResponseDTO
         {
@@ -103,6 +131,8 @@ public class QuestionController : ControllerBase
 
         if (quiz == null)
             return NotFound("Quiz not found.");
+        if (!IsQuizOwnedByCurrentLecturer(quiz))
+            return Forbid();
 
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
@@ -155,6 +185,8 @@ public class QuestionController : ControllerBase
 
         if (quiz == null)
             return NotFound("Quiz not found.");
+        if (!IsQuizOwnedByCurrentLecturer(quiz))
+            return Forbid();
 
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
@@ -206,6 +238,8 @@ public class QuestionController : ControllerBase
 
         if (quiz == null)
             return NotFound("Quiz not found.");
+        if (!IsQuizOwnedByCurrentLecturer(quiz))
+            return Forbid();
 
         if (quiz.IsPublished)
             return BadRequest("Cannot delete a question from a published quiz.");

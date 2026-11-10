@@ -11,5 +11,6 @@ namespace QuizMaster.Service.Interfaces.Repositories
         Task DeleteQuizAsync(int id);
         Task SaveChangesAsync();
         Task<ICollection<Quiz>> GetPublishedQuizzesAsync();
+        Task<ICollection<Quiz>> GetQuizzesByLecturerIdAsync(int lecturerId);
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Quizzes;
 using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
+using System.Security.Claims;
 
 namespace QuizMaster.API.Controllers;
 
@@ -18,13 +19,19 @@ public class QuizController : ControllerBase
     {
         _quizService = quizService;
     }
+
     /// <summary>
-    /// აბრუნებს ყველა ტესტის სიას (ლექტორისთვის).
+    /// აბრუნებს ავტორიზებული ლექტორის მიერ შექმნილ ყველა ტესტს.
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var quizzes = await _quizService.GetAllAsync();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
+        var quizzes = await _quizService.GetQuizzesByLecturerIdAsync(lecturerId);
 
         var response = quizzes.Select(quiz => new QuizResponseDTO
         {
@@ -37,8 +44,11 @@ public class QuizController : ControllerBase
 
         return Ok(response);
     }
+
+
     /// <summary>
     /// აბრუნებს კონკრეტულ ტესტს ID-ის მიხედვით.
+    /// წვდომა აქვს მხოლოდ ტესტის შემქმნელ ლექტორს.
     /// </summary>
     /// <param name="id">ტესტის ID</param>
     [HttpGet("{id:int}")]
@@ -47,9 +57,15 @@ public class QuizController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(id);
 
         if (quiz is null)
-        {
             return NotFound(new { message = "Quiz not found." });
-        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
+        if (quiz.LecturerId != lecturerId)
+            return Forbid();
 
         var response = new QuizResponseDTO
         {
@@ -62,18 +78,26 @@ public class QuizController : ControllerBase
 
         return Ok(response);
     }
+
     /// <summary>
     /// ქმნის ახალ ტესტს.
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Lecturer")]
     public async Task<IActionResult> Create(
         [FromBody] CreateQuizDTO request)
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
         var quiz = new Quiz
         {
             Title = request.Title,
             TimeLimitMinutes = request.TimeLimitMinutes,
-            IsPublished = false
+            IsPublished = false,
+            LecturerId = lecturerId
         };
 
         await _quizService.AddAsync(quiz);
@@ -92,8 +116,12 @@ public class QuizController : ControllerBase
             new { id = quiz.Id },
             response);
     }
+
+
     /// <summary>
-    /// ანახლებს არსებული ტესტის მონაცემებს (თუ გამოქვეყნებული არ არის).
+    /// ანახლებს არსებული ტესტის მონაცემებს.
+    /// ტესტის შეცვლა შეუძლია მხოლოდ მის შემქმნელ ლექტორს,
+    /// თუ ტესტი გამოქვეყნებული არ არის.
     /// </summary>
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(
@@ -103,9 +131,16 @@ public class QuizController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(id);
 
         if (quiz is null)
-        {
             return NotFound(new { message = "Quiz not found." });
-        }
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
+        if (quiz.LecturerId != lecturerId)
+            return Forbid();
+
         if (quiz.IsPublished)
         {
             return BadRequest(new
@@ -113,10 +148,12 @@ public class QuizController : ControllerBase
                 message = "Published quizzes cannot be updated."
             });
         }
+
         quiz.Title = request.Title;
         quiz.TimeLimitMinutes = request.TimeLimitMinutes;
 
         var updated = await _quizService.UpdateAsync(quiz);
+
         if (!updated)
         {
             return BadRequest(new
@@ -136,8 +173,11 @@ public class QuizController : ControllerBase
 
         return Ok(response);
     }
+
+
     /// <summary>
-    /// შლის ტესტს (თუ არ აქვს მცდელობები და არ არის გამოქვეყნებული).
+    /// შლის ტესტს მხოლოდ მისი შემქმნელი ლექტორი,
+    /// თუ ტესტი გამოქვეყნებული არ არის და არ აქვს მცდელობები.
     /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
@@ -146,6 +186,14 @@ public class QuizController : ControllerBase
 
         if (quiz is null)
             return NotFound(new { message = "Quiz not found." });
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
+        if (quiz.LecturerId != lecturerId)
+            return Forbid();
 
         if (quiz.IsPublished)
             return BadRequest(new
@@ -163,8 +211,11 @@ public class QuizController : ControllerBase
 
         return NoContent();
     }
+
+
     /// <summary>
     /// აქვეყნებს ტესტს სტუდენტებისთვის ხელმისაწვდომად.
+    /// გამოქვეყნება შეუძლია მხოლოდ ტესტის შემქმნელ ლექტორს.
     /// </summary>
     [HttpPatch("{id:int}/publish")]
     public async Task<IActionResult> Publish(int id)
@@ -173,6 +224,14 @@ public class QuizController : ControllerBase
 
         if (quiz is null)
             return NotFound(new { message = "Quiz not found." });
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
+        if (quiz.LecturerId != lecturerId)
+            return Forbid();
 
         if (quiz.IsPublished)
             return BadRequest(new
@@ -196,8 +255,11 @@ public class QuizController : ControllerBase
 
         return Ok(new { message = "Quiz published successfully." });
     }
+
+
     /// <summary>
     /// ხურავს გამოქვეყნებულ ტესტს.
+    /// დახურვა შეუძლია მხოლოდ ტესტის შემქმნელ ლექტორს.
     /// </summary>
     [HttpPatch("{id:int}/close")]
     public async Task<IActionResult> Close(int id)
@@ -206,6 +268,14 @@ public class QuizController : ControllerBase
 
         if (quiz is null)
             return NotFound(new { message = "Quiz not found." });
+
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
+        if (quiz.LecturerId != lecturerId)
+            return Forbid();
 
         if (!quiz.IsPublished)
             return BadRequest(new
@@ -222,6 +292,26 @@ public class QuizController : ControllerBase
             });
 
         return Ok(new { message = "Quiz closed successfully." });
+    }
+
+    /// <summary>
+    /// აბრუნებს კონკრეტული ლექტორის მიერ შექმნილ ყველა ტესტს.
+    /// </summary>
+    [HttpGet("my-quizzes")]
+    [Authorize(Roles = "Lecturer")]
+    public async Task<IActionResult> GetMyQuizzes()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
+        var quizzes = await _quizService.GetQuizzesByLecturerIdAsync(lecturerId);
+
+        return Ok(quizzes);
     }
 
 }

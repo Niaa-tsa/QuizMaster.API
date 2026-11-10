@@ -94,9 +94,9 @@ public static class DbSeeder
         {
             UserName = userName,
             Email = email,
-            RoleId = role.Id
+            RoleId = role.Id,
+            ApprovalStatus = "Approved"
         };
-
         user.PasswordHash =
             hasher.HashPassword(user, password);
 
