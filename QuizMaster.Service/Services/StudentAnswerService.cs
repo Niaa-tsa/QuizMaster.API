@@ -73,7 +73,12 @@ public class StudentAnswerService : IStudentAnswerService
 
         if (!question.AnswerOptions.Any(a => a.IsCorrect))
             return false;
-
+        if (question.Type == QuestionType.MultipleChoice &&
+    question.AnswerOptions.Count(a => a.IsCorrect) < 2)
+            return false;
+        if (question.Type == QuestionType.TrueFalse &&
+    question.AnswerOptions.Count != 2)
+            return false;
         var validOptionIds = question.AnswerOptions
             .Select(a => a.Id)
             .ToHashSet();
@@ -85,7 +90,10 @@ public class StudentAnswerService : IStudentAnswerService
              question.Type == QuestionType.TrueFalse) &&
             selectedIds.Count != 1)
             return false;
-
+        if (question.Type != QuestionType.SingleChoice &&
+    question.Type != QuestionType.MultipleChoice &&
+    question.Type != QuestionType.TrueFalse)
+            return false;
         var existingAnswers = await _repository
             .GetAnswersByAttemptAndQuestionAsync(
                 attemptId, dto.QuestionId);

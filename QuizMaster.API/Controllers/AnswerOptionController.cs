@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Questions;
 using QuizMaster.Domain.Entities;
 using QuizMaster.Service.Interfaces;
+using System.Security.Claims;
 
 namespace QuizMaster.API.Controllers;
 
@@ -28,9 +29,6 @@ public class AnswerOptionController : ControllerBase
         _quizService = quizService;
     }
 
-    /// <summary>
-    /// აბრუნებს კითხვის პასუხების ვარიანტებს.
-    /// </summary>
     [HttpGet("question/{questionId}")]
     public async Task<IActionResult> GetByQuestion(int questionId)
     {
@@ -38,6 +36,14 @@ public class AnswerOptionController : ControllerBase
 
         if (question == null)
             return NotFound("Question not found.");
+
+        var quiz = await _quizService.GetByIdAsync(question.QuizId);
+
+        if (quiz == null)
+            return NotFound("Quiz not found.");
+
+        if (!IsQuizOwnedByCurrentLecturer(quiz))
+            return Forbid();
 
         var options = question.AnswerOptions.Select(a => new
         {
@@ -49,7 +55,6 @@ public class AnswerOptionController : ControllerBase
 
         return Ok(options);
     }
-
     /// <summary>
     /// ამატებს პასუხის ახალ ვარიანტს.
     /// </summary>
@@ -67,7 +72,8 @@ public class AnswerOptionController : ControllerBase
 
         if (quiz == null)
             return NotFound("Quiz not found.");
-
+        if (!IsQuizOwnedByCurrentLecturer(quiz))
+            return Forbid();
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
 
@@ -92,7 +98,18 @@ public class AnswerOptionController : ControllerBase
 
         return Ok(new { message = "Answer option created successfully." });
     }
+    /// <summary>
+    /// ამოწმებს, ეკუთვნის თუ არა Quiz ავტორიზებულ ლექტორს.
+    /// </summary>
+    private bool IsQuizOwnedByCurrentLecturer(Quiz quiz)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+        if (!int.TryParse(userId, out int lecturerId))
+            return false;
+
+        return quiz.LecturerId == lecturerId;
+    }
     /// <summary>
     /// ანახლებს პასუხის ვარიანტს.
     /// </summary>
@@ -115,7 +132,8 @@ public class AnswerOptionController : ControllerBase
 
         if (quiz == null)
             return NotFound("Quiz not found.");
-
+        if (!IsQuizOwnedByCurrentLecturer(quiz))
+            return Forbid();
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
 
@@ -157,7 +175,8 @@ public class AnswerOptionController : ControllerBase
 
         if (quiz == null)
             return NotFound("Quiz not found.");
-
+        if (!IsQuizOwnedByCurrentLecturer(quiz))
+            return Forbid();
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
 

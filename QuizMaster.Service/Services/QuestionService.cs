@@ -1,8 +1,9 @@
 ﻿
 using QuizMaster.Domain.Entities;
+using QuizMaster.Domain.Enums;
+using QuizMaster.Domain.Interfaces;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
-using QuizMaster.Domain.Interfaces;
 
 namespace QuizMaster.Service.Services;
 
@@ -17,7 +18,27 @@ public class QuestionService : IQuestionService
         _repository = repository;
         _studentAnswerRepository = studentAnswerRepository;
     }
+    private bool IsQuestionValid(Question question)
+    {
+        if (question.AnswerOptions == null ||
+            question.AnswerOptions.Count == 0)
+            return false;
 
+        var correctAnswers = question.AnswerOptions
+            .Count(a => a.IsCorrect);
+
+        if (question.Type == QuestionType.SingleChoice)
+            return correctAnswers == 1;
+
+        if (question.Type == QuestionType.MultipleChoice)
+            return correctAnswers >= 2;
+
+        if (question.Type == QuestionType.TrueFalse)
+            return question.AnswerOptions.Count == 2 &&
+                   correctAnswers == 1;
+
+        return false;
+    }
     public async Task<List<Question>> GetAllAsync()
     {
         var questions = await _repository.GetAllQuestionsAsync();
@@ -36,10 +57,12 @@ public class QuestionService : IQuestionService
     }
     public async Task AddAsync(Question question)
     {
+        if (!IsQuestionValid(question))
+            throw new ArgumentException("Invalid question or answer options.");
+
         await _repository.AddQuestionAsync(question);
         await _repository.SaveChangesAsync();
     }
-
     public async Task<bool> UpdateAsync(Question question)
     {
         var existingQuestion = await _repository
