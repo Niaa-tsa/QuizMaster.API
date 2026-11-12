@@ -81,14 +81,12 @@ public static class DbSeeder
 
             context.Users.Add(user);
         }
+
         else
         {
-            // Update existing user's role and password
+            // Update existing user's role and approval status
             user.RoleId = superAdminRole.Id;
             user.ApprovalStatus = "Approved";
-
-            user.PasswordHash =
-                hasher.HashPassword(user, password);
         }
 
         await context.SaveChangesAsync();

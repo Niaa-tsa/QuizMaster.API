@@ -19,17 +19,15 @@ namespace QuizMaster.Infrastructure.Repositories
             await _context.Roles.AddAsync(role);
         }
 
+
         public async Task<ICollection<Role>> GetAllRolesAsync()
         {
-            return await _context.Roles
-                .Include(r => r.Users)
-                .ToListAsync();
+            return await _context.Roles.ToListAsync();
         }
 
         public async Task<Role?> GetRoleByIdAsync(int id)
         {
             return await _context.Roles
-                .Include(r => r.Users)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
 

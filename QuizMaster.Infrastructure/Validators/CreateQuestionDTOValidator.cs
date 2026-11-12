@@ -20,7 +20,7 @@ public class CreateQuestionDTOValidator : AbstractValidator<CreateQuestionDTO>
         return dto.Type switch
         {
             QuestionType.SingleChoice => correctCount == 1,
-            QuestionType.MultipleChoice => correctCount >= 1,
+            QuestionType.MultipleChoice => correctCount >= 2,
             QuestionType.TrueFalse =>
                 dto.AnswerOptions.Count == 2 && correctCount == 1,
             _ => false
