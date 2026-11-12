@@ -125,8 +125,15 @@ public class AdminService : IAdminService
         if (user == null)
             return false;
 
-        if (user.Role.Name == "Admin")
+        if (user.Role.Name.Equals(
+         "Admin",
+         StringComparison.OrdinalIgnoreCase) ||
+     user.Role.Name.Equals(
+         "SuperAdmin",
+         StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         var roles = await _roleRepository.GetAllRolesAsync();
 

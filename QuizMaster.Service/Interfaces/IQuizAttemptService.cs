@@ -23,5 +23,7 @@ public interface IQuizAttemptService
     int quizId,
     int page,
     int pageSize);
-    Task<QuizStatisticsDTO?> GetQuizStatisticsAsync(int quizId);
+    Task<QuizStatisticsDTO?> GetQuizStatisticsAsync(
+        int quizId,
+        int lecturerId);
 }

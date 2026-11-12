@@ -33,12 +33,15 @@ namespace QuizMaster.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+
         public async Task<Quiz?> GetQuizByIdAsync(int id)
         {
             return await _context.Quizzes
                 .Include(q => q.Questions)
+                    .ThenInclude(q => q.AnswerOptions)
                 .FirstOrDefaultAsync(q => q.Id == id);
         }
+
 
         public async Task UpdateQuizAsync(int id, Quiz quiz)
         {

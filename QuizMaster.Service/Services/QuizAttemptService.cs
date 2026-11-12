@@ -64,6 +64,7 @@ public class QuizAttemptService : IQuizAttemptService
         return attempt;
     }
 
+
     public async Task<QuizResult?> FinishAttemptAsync(
         int attemptId,
         int userId)
@@ -108,6 +109,13 @@ public class QuizAttemptService : IQuizAttemptService
             }
         }
 
+        var now = DateTime.UtcNow;
+
+        var deadline = attempt.StartedAt.AddMinutes(
+            attempt.Quiz.TimeLimitMinutes);
+
+        var finishedAt = now > deadline ? deadline : now;
+
         var result = new QuizResult
         {
             AttemptId = attemptId,
@@ -117,16 +125,11 @@ public class QuizAttemptService : IQuizAttemptService
 
         await _quizResultRepository.AddQuizResultAsync(result);
 
-        var deadline = attempt.StartedAt.AddMinutes(
-      attempt.Quiz.TimeLimitMinutes);
-
-        var now = DateTime.UtcNow;
-
         attempt.Status = "Finished";
-        attempt.FinishedAt = now > deadline ? deadline : now;
+        attempt.FinishedAt = finishedAt;
 
         await _repository.UpdateQuizAttemptAsync(
-     attempt.Id, attempt);
+            attempt.Id, attempt);
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -167,11 +170,13 @@ public class QuizAttemptService : IQuizAttemptService
             })
             .ToList();
     }
-    public async Task<QuizStatisticsDTO?> GetQuizStatisticsAsync(int quizId)
+    public async Task<QuizStatisticsDTO?> GetQuizStatisticsAsync(
+     int quizId,
+     int lecturerId)
     {
         var quiz = await _quizRepository.GetQuizByIdAsync(quizId);
 
-        if (quiz == null)
+        if (quiz == null || quiz.LecturerId != lecturerId)
             return null;
 
         var statistics = await _quizResultRepository

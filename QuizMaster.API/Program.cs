@@ -81,7 +81,6 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Password hasher and authentication service
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 // Service registrations
@@ -93,6 +92,7 @@ builder.Services.AddScoped<IAnswerOptionService, AnswerOptionService>();
 builder.Services.AddScoped<IQuizAttemptService, QuizAttemptService>();
 builder.Services.AddScoped<IStudentAnswerService, StudentAnswerService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
 
 // JWT configuration
 var jwtKey = builder.Configuration["Jwt:Key"]

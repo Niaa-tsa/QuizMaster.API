@@ -63,6 +63,7 @@ public class QuestionService : IQuestionService
         await _repository.AddQuestionAsync(question);
         await _repository.SaveChangesAsync();
     }
+
     public async Task<bool> UpdateAsync(Question question)
     {
         var existingQuestion = await _repository
@@ -70,6 +71,10 @@ public class QuestionService : IQuestionService
 
         if (existingQuestion == null)
             return false;
+
+        if (!IsQuestionValid(question))
+            return false;
+
         if (await _studentAnswerRepository.HasAnswersForQuestionAsync(question.Id))
             return false;
 
@@ -88,6 +93,7 @@ public class QuestionService : IQuestionService
 
         return true;
     }
+
 
     public async Task<bool> DeleteAsync(int id)
     {

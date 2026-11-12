@@ -1,5 +1,6 @@
 ﻿
 using QuizMaster.Domain.Entities;
+using QuizMaster.Domain.Enums;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 
@@ -77,20 +78,47 @@ public class QuizService : IQuizService
     {
         return await _attemptRepository.HasAttemptsForQuizAsync(quizId);
     }
+
     public async Task<bool> PublishAsync(int id)
     {
         var quiz = await _repository.GetQuizByIdAsync(id);
 
-        if (quiz is null)
-            return false;
-
-        if (quiz.IsPublished)
+        if (quiz is null || quiz.IsPublished)
             return false;
 
         if (quiz.Questions == null || !quiz.Questions.Any())
             return false;
-        var hasAttempts = await _attemptRepository
-    .HasAttemptsForQuizAsync(id);
+
+        foreach (var question in quiz.Questions)
+        {
+            if (question.AnswerOptions == null ||
+                question.AnswerOptions.Count == 0)
+                return false;
+
+            var correctAnswers = question.AnswerOptions
+                .Count(a => a.IsCorrect);
+
+            if (question.Type == QuestionType.SingleChoice &&
+                correctAnswers != 1)
+                return false;
+
+            if (question.Type == QuestionType.MultipleChoice &&
+                correctAnswers < 2)
+                return false;
+
+            if (question.Type == QuestionType.TrueFalse &&
+                (question.AnswerOptions.Count != 2 ||
+                 correctAnswers != 1))
+                return false;
+
+            if (question.Type != QuestionType.SingleChoice &&
+                question.Type != QuestionType.MultipleChoice &&
+                question.Type != QuestionType.TrueFalse)
+                return false;
+        }
+
+        var hasAttempts =
+            await _attemptRepository.HasAttemptsForQuizAsync(id);
 
         if (hasAttempts)
             return false;
@@ -102,6 +130,7 @@ public class QuizService : IQuizService
 
         return true;
     }
+
 
     public async Task<bool> CloseAsync(int id)
     {

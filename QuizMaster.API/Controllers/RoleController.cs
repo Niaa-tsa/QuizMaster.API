@@ -10,7 +10,7 @@ namespace QuizMaster.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Lecturer")]
+[Authorize(Roles = "SuperAdmin")]
 public class RoleController : ControllerBase
 {
     private readonly IRoleService _service;

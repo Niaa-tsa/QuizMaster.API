@@ -52,8 +52,10 @@ public class AnswerOptionService : IAnswerOptionService
 
         if (existingOption == null)
             return false;
-        if (await _studentAnswerRepository.HasAnswersForOptionAsync(answerOption.Id))
+
+        if (await _studentAnswerRepository.HasAnswersForQuestionAsync(existingOption.QuestionId))
             return false;
+
 
         existingOption.Text = answerOption.Text;
         existingOption.IsCorrect = answerOption.IsCorrect;

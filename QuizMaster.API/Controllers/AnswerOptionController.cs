@@ -179,7 +179,7 @@ public class AnswerOptionController : ControllerBase
             return Forbid();
         if (quiz.IsPublished)
             return BadRequest("Cannot modify a published quiz.");
-
+        
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)

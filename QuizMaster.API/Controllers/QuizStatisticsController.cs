@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Service.Interfaces;
+using System.Security.Claims;
 
 namespace QuizMaster.API.Controllers;
 
@@ -15,17 +17,23 @@ public class QuizStatisticsController : ControllerBase
     {
         _attemptService = attemptService;
     }
+
     /// <summary>
-    /// აბრუნებს ტესტის სტატისტიკას (საშუალო ქულა, მცდელობების რაოდენობა და ა.შ.).
+    /// აბრუნებს ტესტის სტატისტიკას.
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetStatistics(int quizId)
     {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(userId, out int lecturerId))
+            return Unauthorized();
+
         var statistics = await _attemptService
-            .GetQuizStatisticsAsync(quizId);
+            .GetQuizStatisticsAsync(quizId, lecturerId);
 
         if (statistics is null)
-            return NotFound(new { message = "Quiz not found." });
+            return NotFound(new { message = "Quiz not found or access denied." });
 
         return Ok(statistics);
     }

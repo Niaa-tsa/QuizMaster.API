@@ -311,7 +311,18 @@ public class QuizController : ControllerBase
 
         var quizzes = await _quizService.GetQuizzesByLecturerIdAsync(lecturerId);
 
-        return Ok(quizzes);
+
+        var response = quizzes.Select(quiz => new QuizResponseDTO
+        {
+            Id = quiz.Id,
+            Title = quiz.Title,
+            TimeLimitMinutes = quiz.TimeLimitMinutes,
+            IsPublished = quiz.IsPublished,
+            CreatedAt = quiz.CreatedAt
+        }).ToList();
+
+        return Ok(response);
+
     }
 
 }
