@@ -98,6 +98,11 @@ namespace QuizMaster.Infrastructure.Migrations
                     b.Property<int?>("LecturerId")
                         .HasColumnType("int");
 
+                    b.Property<int>("MaxAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<int>("TimeLimitMinutes")
                         .HasColumnType("int");
 
@@ -112,6 +117,8 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.ToTable("Quizzes", t =>
                         {
+                            t.HasCheckConstraint("CK_Quizzes_MaxAttempts", "[MaxAttempts] >= 1");
+
                             t.HasCheckConstraint("CK_Quizzes_TimeLimit", "[TimeLimitMinutes] > 0");
                         });
                 });
@@ -143,10 +150,13 @@ namespace QuizMaster.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("QuizId");
+
                     b.HasIndex("UserId");
 
                     b.HasIndex("QuizId", "UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Status] = 'InProgress'");
 
                     b.ToTable("QuizAttempts");
                 });

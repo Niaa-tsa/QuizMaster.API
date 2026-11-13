@@ -10,4 +10,6 @@ public class CreateQuizDTO
 
     [Range(1, 300)]
     public int TimeLimitMinutes { get; set; }
+    [Range(1, 10)]
+    public int MaxAttempts { get; set; } = 1;
 }

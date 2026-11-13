@@ -84,12 +84,21 @@ public class QuizMasterDbContext : DbContext
             .Property(q => q.Title)
             .HasMaxLength(200)
             .IsRequired();
+        modelBuilder.Entity<Quiz>()
+            .ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_Quizzes_TimeLimit",
+                    "[TimeLimitMinutes] > 0");
+
+                t.HasCheckConstraint(
+                    "CK_Quizzes_MaxAttempts",
+                    "[MaxAttempts] >= 1");
+            });
 
         modelBuilder.Entity<Quiz>()
-            .ToTable(t => t.HasCheckConstraint(
-                "CK_Quizzes_TimeLimit",
-                "[TimeLimitMinutes] > 0"));
-
+            .Property(q => q.MaxAttempts)
+            .HasDefaultValue(1);
         modelBuilder.Entity<Quiz>()
             .HasMany(q => q.Questions)
             .WithOne(q => q.Quiz)
@@ -128,9 +137,15 @@ public class QuizMasterDbContext : DbContext
             .Property(a => a.Status)
             .HasMaxLength(20)
             .IsRequired();
+        // ერთ სტუდენტს ერთ ტესტზე ერთდროულად მხოლოდ ერთი მიმდინარე მცდელობა
         modelBuilder.Entity<QuizAttempt>()
             .HasIndex(a => new { a.QuizId, a.UserId })
-            .IsUnique();
+            .IsUnique()
+            .HasFilter("[Status] = 'InProgress'");
+
+        // QuizId-ით ძებნის დასაჩქარებლად
+        modelBuilder.Entity<QuizAttempt>()
+            .HasIndex(a => a.QuizId);
         modelBuilder.Entity<QuizAttempt>()
             .HasOne(a => a.User)
             .WithMany(u => u.QuizAttempts)

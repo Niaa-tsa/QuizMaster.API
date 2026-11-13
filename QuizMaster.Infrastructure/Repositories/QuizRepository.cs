@@ -53,6 +53,7 @@ namespace QuizMaster.Infrastructure.Repositories
 
             existingQuiz.Title = quiz.Title;
             existingQuiz.TimeLimitMinutes = quiz.TimeLimitMinutes;
+            existingQuiz.MaxAttempts = quiz.MaxAttempts;
             existingQuiz.IsPublished = quiz.IsPublished;
         }
         public async Task DeleteQuizAsync(int id)

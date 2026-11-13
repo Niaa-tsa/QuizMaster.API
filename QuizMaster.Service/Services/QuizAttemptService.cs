@@ -36,21 +36,39 @@ public class QuizAttemptService : IQuizAttemptService
     }
 
     public async Task<QuizAttempt?> StartAsync(
-        int quizId,
-        int userId)
+     int quizId,
+     int userId)
     {
         var quiz = await _quizRepository.GetQuizByIdAsync(quizId);
 
         if (quiz == null || !quiz.IsPublished)
             return null;
 
-        var existingAttempts =
-            await _repository.GetStudentAttemptsAsync(userId);
+        var attemptsForQuiz = (await _repository
+                .GetStudentAttemptsAsync(userId))
+            .Where(a => a.QuizId == quizId)
+            .ToList();
 
-        if (existingAttempts.Any(a => a.QuizId == quizId))
+        // მიმდინარე მცდელობები: თუ დრო არ გასულა, ვაგრძელებთ მას,
+        // თუ გავიდა, ავტომატურად ვასრულებთ
+        var running = attemptsForQuiz
+            .Where(a => a.Status == "InProgress")
+            .ToList();
+
+        foreach (var attempt in running)
+        {
+            var deadline = attempt.StartedAt.AddMinutes(quiz.TimeLimitMinutes);
+
+            if (DateTime.UtcNow < deadline)
+                return attempt;
+
+            await FinishAttemptAsync(attempt.Id, userId);
+        }
+
+        if (attemptsForQuiz.Count >= quiz.MaxAttempts)
             return null;
 
-        var attempt = new QuizAttempt
+        var newAttempt = new QuizAttempt
         {
             QuizId = quizId,
             UserId = userId,
@@ -58,12 +76,11 @@ public class QuizAttemptService : IQuizAttemptService
             Status = "InProgress"
         };
 
-        await _repository.AddQuizAttemptAsync(attempt);
+        await _repository.AddQuizAttemptAsync(newAttempt);
         await _unitOfWork.SaveChangesAsync();
 
-        return attempt;
+        return newAttempt;
     }
-
 
     public async Task<QuizResult?> FinishAttemptAsync(
         int attemptId,

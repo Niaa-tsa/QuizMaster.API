@@ -97,6 +97,7 @@ public class QuizController : ControllerBase
             Title = request.Title,
             TimeLimitMinutes = request.TimeLimitMinutes,
             IsPublished = false,
+            MaxAttempts = request.MaxAttempts,
             LecturerId = lecturerId
         };
 
@@ -151,7 +152,7 @@ public class QuizController : ControllerBase
 
         quiz.Title = request.Title;
         quiz.TimeLimitMinutes = request.TimeLimitMinutes;
-
+        quiz.MaxAttempts = request.MaxAttempts;
         var updated = await _quizService.UpdateAsync(quiz);
 
         if (!updated)

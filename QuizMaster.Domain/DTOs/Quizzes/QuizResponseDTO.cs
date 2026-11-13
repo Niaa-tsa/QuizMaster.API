@@ -11,4 +11,5 @@ public class QuizResponseDTO
     public bool IsPublished { get; set; }
 
     public DateTime CreatedAt { get; set; }
+    public int MaxAttempts { get; set; }
 }

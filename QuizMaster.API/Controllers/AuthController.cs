@@ -19,17 +19,10 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPost("register")]
     public async Task<IActionResult> Register(
-        RegisterRequestDTO request)
+     RegisterRequestDTO request)
     {
-        try
-        {
-            var response = await _authService.RegisterAsync(request);
-            return Ok(response);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(new { message = ex.Message });
-        }
+        var response = await _authService.RegisterAsync(request);
+        return Ok(response);
     }
     /// <summary>
     /// ახდენს მომხმარებლის ავტორიზაციას და აბრუნებს JWT ტოკენს.

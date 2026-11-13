@@ -16,5 +16,7 @@ public class RegisterRequestDTO
     [Required]
     [MinLength(8)]
     public string Password { get; set; } = string.Empty;
+    [RegularExpression("(?i)^(Student|Lecturer)$",
+    ErrorMessage = "RequestedRole must be Student or Lecturer.")]
     public string RequestedRole { get; set; } = "Student";
 }

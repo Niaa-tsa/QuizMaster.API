@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using QuizMaster.Domain.DTOs.Auth;
 using QuizMaster.Domain.Entities;
+using QuizMaster.Service.Exceptions;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 
@@ -38,8 +39,8 @@ public class AuthService : IAuthService
 
         if (existingUser != null)
         {
-            throw new InvalidOperationException(
-                "An account with this email already exists.");
+            throw new ConflictException(
+       "An account with this email already exists.");
         }
 
         var requestedRole = request.RequestedRole.Trim();
@@ -49,8 +50,8 @@ public class AuthService : IAuthService
             !requestedRole.Equals("Lecturer",
                 StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidOperationException(
-                "Only Student and Lecturer registration is allowed.");
+            throw new BusinessRuleException(
+    "Only Student and Lecturer registration is allowed.");
         }
 
         var roles = await _roleRepository.GetAllRolesAsync();

@@ -61,12 +61,11 @@ public class StudentQuizzesController : ControllerBase
 
         var attempt = await _attemptService.StartAsync(
             quizId, userId);
-
         if (attempt is null)
         {
             return Conflict(new
             {
-                message = "Quiz is unavailable, already started, or already completed."
+                message = "Quiz is unavailable or the attempt limit has been reached."
             });
         }
 
