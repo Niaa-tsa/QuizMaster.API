@@ -1,21 +1,20 @@
-﻿using QuizMaster.Domain.Entities;
+﻿using QuizMaster.Domain.DTOs.Quizzes;
+using QuizMaster.Domain.Entities;
 
 namespace QuizMaster.Service.Interfaces;
 
 public interface IQuizService
 {
-    Task<List<Quiz>> GetAllAsync();
-    Task<Quiz?> GetByIdAsync(int id);
-    Task AddAsync(Quiz quiz);
-    Task<bool> UpdateAsync(Quiz quiz);
-    Task<bool> DeleteAsync(int id);
+    Task<List<QuizResponseDTO>> GetPublishedAsync();
 
-    Task<bool> PublishAsync(int id);
-    Task<bool> CloseAsync(int id);
-    Task<bool> HasAttemptsAsync(int quizId);
-    Task<List<Quiz>> GetPublishedAsync();
+    Task<List<QuizResponseDTO>> GetByLecturerAsync(int lecturerId);
+    Task<QuizResponseDTO> GetOwnedAsync(int quizId, int lecturerId);
+    Task<QuizResponseDTO> CreateAsync(CreateQuizDTO dto, int lecturerId);
+    Task<QuizResponseDTO> UpdateAsync(int quizId, UpdateQuizDTO dto, int lecturerId);
+    Task DeleteAsync(int quizId, int lecturerId);
+    Task PublishAsync(int quizId, int lecturerId);
+    Task CloseAsync(int quizId, int lecturerId);
 
-    Task<List<Quiz>> GetQuizzesByLecturerIdAsync(int lecturerId);
-
-
+    Task<Quiz> GetOwnedQuizAsync(int quizId, int lecturerId);
+    Task<Quiz> GetEditableQuizAsync(int quizId, int lecturerId);
 }

@@ -1,12 +1,11 @@
-﻿using QuizMaster.Domain.Entities;
+﻿using QuizMaster.Domain.DTOs.Questions;
 
 namespace QuizMaster.Service.Interfaces;
 
 public interface IAnswerOptionService
 {
-    Task<List<AnswerOption>> GetAllAsync();
-    Task<AnswerOption?> GetByIdAsync(int id);
-    Task<bool> AddAsync(AnswerOption answerOption);
-    Task<bool> UpdateAsync(AnswerOption answerOption);
-    Task<bool> DeleteAsync(int id);
+    Task<List<AnswerOptionDetailsDTO>> GetByQuestionAsync(int questionId, int lecturerId);
+    Task<AnswerOptionDetailsDTO> CreateAsync(int questionId, AnswerOptionDTO dto, int lecturerId);
+    Task UpdateAsync(int answerOptionId, AnswerOptionDTO dto, int lecturerId);
+    Task DeleteAsync(int answerOptionId, int lecturerId);
 }

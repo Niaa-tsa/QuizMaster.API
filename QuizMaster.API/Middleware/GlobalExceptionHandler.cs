@@ -64,6 +64,8 @@ public class GlobalExceptionHandler : IExceptionHandler
     {
         return exception switch
         {
+            UnauthorizedException e =>
+    (StatusCodes.Status401Unauthorized, "Unauthorized", e.Message),
             NotFoundException e =>
                 (StatusCodes.Status404NotFound, "Resource not found", e.Message),
 

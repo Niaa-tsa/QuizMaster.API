@@ -1,5 +1,6 @@
-﻿
+﻿using QuizMaster.Domain.DTOs.Questions;
 using QuizMaster.Domain.Entities;
+using QuizMaster.Service.Exceptions;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 
@@ -8,76 +9,122 @@ namespace QuizMaster.Service.Services;
 public class AnswerOptionService : IAnswerOptionService
 {
     private readonly IAnswerOptionRepository _repository;
+    private readonly IQuestionRepository _questionRepository;
     private readonly IStudentAnswerRepository _studentAnswerRepository;
+    private readonly IQuizService _quizService;
 
     public AnswerOptionService(
-     IAnswerOptionRepository repository,
-     IStudentAnswerRepository studentAnswerRepository)
+        IAnswerOptionRepository repository,
+        IQuestionRepository questionRepository,
+        IStudentAnswerRepository studentAnswerRepository,
+        IQuizService quizService)
     {
         _repository = repository;
+        _questionRepository = questionRepository;
         _studentAnswerRepository = studentAnswerRepository;
+        _quizService = quizService;
     }
 
-    public async Task<List<AnswerOption>> GetAllAsync()
+    public async Task<List<AnswerOptionDetailsDTO>> GetByQuestionAsync(
+        int questionId,
+        int lecturerId)
     {
-        var answerOptions =
-            await _repository.GetAllAnswerOptionsAsync();
+        var question = await GetQuestionAsync(questionId);
 
-        return answerOptions.ToList();
+        await _quizService.GetOwnedQuizAsync(question.QuizId, lecturerId);
+
+        return question.AnswerOptions.Select(a => ToDto(a)).ToList();
     }
 
-    public Task<AnswerOption?> GetByIdAsync(int id)
+    public async Task<AnswerOptionDetailsDTO> CreateAsync(
+        int questionId,
+        AnswerOptionDTO dto,
+        int lecturerId)
     {
-        return _repository.GetAnswerOptionByIdAsync(id);
-    }
+        var question = await GetQuestionAsync(questionId);
 
-    public async Task<bool> AddAsync(AnswerOption answerOption)
-    {
-        var hasAnswers = await _studentAnswerRepository
-            .HasAnswersForQuestionAsync(answerOption.QuestionId);
+        await _quizService.GetEditableQuizAsync(question.QuizId, lecturerId);
 
-        if (hasAnswers)
-            return false;
+        if (await _studentAnswerRepository.HasAnswersForQuestionAsync(questionId))
+            throw new BusinessRuleException(
+                "Cannot add an answer option because students have already answered this question.");
 
-        await _repository.AddAnswerOptionAsync(answerOption);
+        var option = new AnswerOption
+        {
+            QuestionId = questionId,
+            Text = dto.Text,
+            IsCorrect = dto.IsCorrect
+        };
+
+        await _repository.AddAnswerOptionAsync(option);
         await _repository.SaveChangesAsync();
 
-        return true;
+        return ToDto(option);
     }
 
-    public async Task<bool> UpdateAsync(AnswerOption answerOption)
+    public async Task UpdateAsync(
+        int answerOptionId,
+        AnswerOptionDTO dto,
+        int lecturerId)
     {
-        var existingOption =
-            await _repository.GetAnswerOptionByIdAsync(answerOption.Id);
+        var option = await GetOptionAsync(answerOptionId);
+        var question = await GetQuestionAsync(option.QuestionId);
 
-        if (existingOption == null)
-            return false;
+        await _quizService.GetEditableQuizAsync(question.QuizId, lecturerId);
 
-        if (await _studentAnswerRepository.HasAnswersForQuestionAsync(existingOption.QuestionId))
-            return false;
+        if (await _studentAnswerRepository.HasAnswersForQuestionAsync(option.QuestionId))
+            throw new BusinessRuleException(
+                "Cannot update this answer option because students have already answered this question.");
 
-
-        existingOption.Text = answerOption.Text;
-        existingOption.IsCorrect = answerOption.IsCorrect;
+        option.Text = dto.Text;
+        option.IsCorrect = dto.IsCorrect;
 
         await _repository.SaveChangesAsync();
-
-        return true;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task DeleteAsync(int answerOptionId, int lecturerId)
     {
-        var answerOption =
-            await _repository.GetAnswerOptionByIdAsync(id);
+        var option = await GetOptionAsync(answerOptionId);
+        var question = await GetQuestionAsync(option.QuestionId);
 
-        if (answerOption == null)
-            return false;
-        if (await _studentAnswerRepository.HasAnswersForOptionAsync(id))
-            return false;
+        await _quizService.GetEditableQuizAsync(question.QuizId, lecturerId);
 
-        await _repository.DeleteAnswerOptionAsync(id);
+        if (await _studentAnswerRepository.HasAnswersForOptionAsync(answerOptionId))
+            throw new BusinessRuleException(
+                "Cannot delete this answer option because students have already answered it.");
+
+        await _repository.DeleteAnswerOptionAsync(answerOptionId);
         await _repository.SaveChangesAsync();
+    }
 
-        return true;
+    private async Task<Question> GetQuestionAsync(int questionId)
+    {
+        var question = await _questionRepository.GetQuestionByIdAsync(questionId);
+
+        if (question is null)
+            throw new NotFoundException("Question not found.");
+
+        return question;
+    }
+
+    private async Task<AnswerOption> GetOptionAsync(int answerOptionId)
+    {
+        var option = await _repository.GetAnswerOptionByIdAsync(answerOptionId);
+
+        if (option is null)
+            throw new NotFoundException("Answer option not found.");
+
+        return option;
+    }
+
+    private static AnswerOptionDetailsDTO ToDto(AnswerOption option)
+    {
+        return new AnswerOptionDetailsDTO
+        {
+            Id = option.Id,
+            QuestionId = option.QuestionId,
+            Text = option.Text,
+            IsCorrect = option.IsCorrect
+        };
     }
 }
