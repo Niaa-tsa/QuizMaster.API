@@ -95,8 +95,16 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<ISuperAdminService, SuperAdminService>();
 
 // JWT configuration
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new InvalidOperationException("JWT Key is missing.");
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrWhiteSpace(jwtKey) ||
+    Encoding.UTF8.GetByteCount(jwtKey) < 32)
+{
+    throw new InvalidOperationException(
+        "JWT key is missing or shorter than 32 characters. " +
+        "Set it with: dotnet user-secrets set \"Jwt:Key\" \"<random string>\" " +
+        "--project QuizMaster.API");
+}
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]
     ?? throw new InvalidOperationException("JWT Issuer is missing.");
 var jwtAudience = builder.Configuration["Jwt:Audience"]

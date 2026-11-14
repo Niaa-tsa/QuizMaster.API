@@ -25,13 +25,13 @@ public class LeaderboardController : ControllerBase
         [FromQuery] int pageSize = 10)
     {
         if (page < 1 || pageSize < 1 || pageSize > 100)
-            return BadRequest(new { message = "Invalid page or pageSize." });
+            return Problem(statusCode: 400, title: "Invalid page or pageSize.");
 
         var leaderboard = await _attemptService
             .GetLeaderboardAsync(quizId, page, pageSize);
 
         if (leaderboard is null)
-            return NotFound(new { message = "Quiz not found." });
+            return Problem(statusCode: 404, title: "Quiz not found.");
 
         return Ok(leaderboard);
     }

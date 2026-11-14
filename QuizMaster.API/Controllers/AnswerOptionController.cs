@@ -35,12 +35,12 @@ public class AnswerOptionController : ControllerBase
         var question = await _questionService.GetByIdAsync(questionId);
 
         if (question == null)
-            return NotFound("Question not found.");
+            return Problem(statusCode: 404, title: "Question not found.");
 
         var quiz = await _quizService.GetByIdAsync(question.QuizId);
 
         if (quiz == null)
-            return NotFound("Quiz not found.");
+            return Problem(statusCode: 404, title: "Quiz not found.");
 
         if (!IsQuizOwnedByCurrentLecturer(quiz))
             return Forbid();
@@ -66,22 +66,21 @@ public class AnswerOptionController : ControllerBase
         var question = await _questionService.GetByIdAsync(questionId);
 
         if (question == null)
-            return NotFound("Question not found.");
+            return Problem(statusCode: 404, title: "Question not found.");
 
         var quiz = await _quizService.GetByIdAsync(question.QuizId);
 
         if (quiz == null)
-            return NotFound("Quiz not found.");
+            return Problem(statusCode: 404, title: "Quiz not found.");
         if (!IsQuizOwnedByCurrentLecturer(quiz))
             return Forbid();
         if (quiz.IsPublished)
-            return BadRequest("Cannot modify a published quiz.");
+            return Problem(statusCode: 400, title: "Cannot modify a published quiz.");
 
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
-            return BadRequest(
-                "Cannot modify a quiz that students have already attempted.");
+            return Problem(statusCode: 400, title: "Cannot modify a quiz that students have already attempted.");
 
         var option = new AnswerOption
         {
@@ -93,8 +92,7 @@ public class AnswerOptionController : ControllerBase
         var created = await _answerOptionService.AddAsync(option);
 
         if (!created)
-            return BadRequest(
-                "Cannot add an answer option because students have already answered this question.");
+            return Problem(statusCode: 400, title: "Cannot add an answer option because students have already answered this question.");
 
         return Ok(new { message = "Answer option created successfully." });
     }
@@ -121,27 +119,26 @@ public class AnswerOptionController : ControllerBase
         var option = await _answerOptionService.GetByIdAsync(id);
 
         if (option == null)
-            return NotFound("Answer option not found.");
+            return Problem(statusCode: 404, title: "Answer option not found.");
 
         var question = await _questionService.GetByIdAsync(option.QuestionId);
 
         if (question == null)
-            return NotFound("Question not found.");
+            return Problem(statusCode: 404, title: "Question not found.");
 
         var quiz = await _quizService.GetByIdAsync(question.QuizId);
 
         if (quiz == null)
-            return NotFound("Quiz not found.");
+            return Problem(statusCode: 404, title: "Quiz not found.");
         if (!IsQuizOwnedByCurrentLecturer(quiz))
             return Forbid();
         if (quiz.IsPublished)
-            return BadRequest("Cannot modify a published quiz.");
+            return Problem(statusCode: 400, title: "Cannot modify a published quiz.");
 
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
-            return BadRequest(
-                "Cannot modify a quiz that students have already attempted.");
+            return Problem(statusCode: 400, title: "Cannot modify a quiz that students have already attempted.");
 
         option.Text = dto.Text;
         option.IsCorrect = dto.IsCorrect;
@@ -149,8 +146,7 @@ public class AnswerOptionController : ControllerBase
         var updated = await _answerOptionService.UpdateAsync(option);
 
         if (!updated)
-            return BadRequest(
-                "Cannot update this answer option because students have already answered it.");
+            return Problem(statusCode: 400, title: "Cannot update this answer option because students have already answered it.");
 
         return Ok(new { message = "Answer option updated successfully." });
     }
@@ -164,33 +160,31 @@ public class AnswerOptionController : ControllerBase
         var option = await _answerOptionService.GetByIdAsync(id);
 
         if (option == null)
-            return NotFound("Answer option not found.");
+            return Problem(statusCode: 404, title: "Answer option not found.");
 
         var question = await _questionService.GetByIdAsync(option.QuestionId);
 
         if (question == null)
-            return NotFound("Question not found.");
+            return Problem(statusCode: 404, title: "Question not found.");
 
         var quiz = await _quizService.GetByIdAsync(question.QuizId);
 
         if (quiz == null)
-            return NotFound("Quiz not found.");
+            return Problem(statusCode: 404, title: "Quiz not found.");
         if (!IsQuizOwnedByCurrentLecturer(quiz))
             return Forbid();
         if (quiz.IsPublished)
-            return BadRequest("Cannot modify a published quiz.");
-        
+            return Problem(statusCode: 400, title: "Cannot modify a published quiz.");
+
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
-            return BadRequest(
-                "Cannot modify a quiz that students have already attempted.");
+            return Problem(statusCode: 400, title: "Cannot modify a quiz that students have already attempted.");
 
         var deleted = await _answerOptionService.DeleteAsync(id);
 
         if (!deleted)
-            return BadRequest(
-                "Cannot delete this answer option because students have already answered it.");
+            return Problem(statusCode: 400, title: "Cannot delete this answer option because students have already answered it.");
 
         return Ok(new { message = "Answer option deleted successfully." });
     }

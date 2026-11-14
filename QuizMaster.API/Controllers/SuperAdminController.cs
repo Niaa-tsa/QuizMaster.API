@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Admin;
 using QuizMaster.Service.Interfaces;
@@ -28,8 +27,7 @@ public class SuperAdminController : ControllerBase
 
         if (!result)
         {
-            return BadRequest(
-                "Invalid data or email already exists.");
+            return Problem(statusCode: 400, title: "Invalid data or email already exists.");
         }
 
         return Ok(new
@@ -54,7 +52,7 @@ public class SuperAdminController : ControllerBase
         var admin = await _superAdminService.GetAdminByIdAsync(id);
 
         if (admin == null)
-            return NotFound("Admin not found.");
+            return Problem(statusCode: 404, title: "Admin not found.");
 
         return Ok(admin);
     }
@@ -66,7 +64,7 @@ public class SuperAdminController : ControllerBase
         var result = await _superAdminService.DeleteAdminAsync(id);
 
         if (!result)
-            return NotFound("Admin not found.");
+            return Problem(statusCode: 404, title: "Admin not found.");
 
         return Ok(new
         {

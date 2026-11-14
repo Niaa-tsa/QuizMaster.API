@@ -43,10 +43,7 @@ public class StudentAnswersController : ControllerBase
 
         if (!result)
         {
-            return BadRequest(new
-            {
-                message = "Invalid attempt, question or answer options."
-            });
+            return Problem(statusCode: 400, title: "Invalid attempt, question or answer options.");
         }
 
         return Ok(new

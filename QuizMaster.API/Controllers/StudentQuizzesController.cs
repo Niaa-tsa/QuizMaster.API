@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Attempts;
 using QuizMaster.Domain.DTOs.Questions;
@@ -15,12 +14,16 @@ public class StudentQuizzesController : ControllerBase
 {
     private readonly IQuizService _quizService;
     private readonly IQuizAttemptService _attemptService;
+    private readonly ILogger<StudentQuizzesController> _logger;
+
     public StudentQuizzesController(
-    IQuizService quizService,
-    IQuizAttemptService attemptService)
+        IQuizService quizService,
+        IQuizAttemptService attemptService,
+        ILogger<StudentQuizzesController> logger)
     {
         _quizService = quizService;
         _attemptService = attemptService;
+        _logger = logger;
     }
     /// <summary>
     /// აბრუნებს ყველა გამოქვეყნებული ტესტის სიას სტუდენტებისთვის.
@@ -36,6 +39,7 @@ public class StudentQuizzesController : ControllerBase
             Title = quiz.Title,
             TimeLimitMinutes = quiz.TimeLimitMinutes,
             IsPublished = quiz.IsPublished,
+            MaxAttempts = quiz.MaxAttempts,
             CreatedAt = quiz.CreatedAt
         }).ToList();
 
@@ -53,21 +57,24 @@ public class StudentQuizzesController : ControllerBase
 
         if (!int.TryParse(userIdValue, out var userId))
         {
-            return Unauthorized(new
-            {
-                message = "User ID was not found in the token."
-            });
+            return Problem(statusCode: 401, title: "User ID was not found in the token.");
         }
 
         var attempt = await _attemptService.StartAsync(
             quizId, userId);
+
         if (attempt is null)
         {
-            return Conflict(new
-            {
-                message = "Quiz is unavailable or the attempt limit has been reached."
-            });
+            _logger.LogWarning(
+                "User {UserId} could not start quiz {QuizId}",
+                userId, quizId);
+
+            return Problem(statusCode: 409, title: "Quiz is unavailable or the attempt limit has been reached.");
         }
+
+        _logger.LogInformation(
+            "User {UserId} started attempt {AttemptId} for quiz {QuizId}",
+            userId, attempt.Id, quizId);
 
         return Ok(new
         {
@@ -93,13 +100,13 @@ public class StudentQuizzesController : ControllerBase
             attemptId, userId);
 
         if (attempt == null)
-            return NotFound("Attempt not found.");
+            return Problem(statusCode: 404, title: "Attempt not found.");
 
         if (attempt.Status != "InProgress")
-            return BadRequest("This attempt is already finished.");
+            return Problem(statusCode: 400, title: "This attempt is already finished.");
 
         if (attempt.Quiz == null)
-            return NotFound("Quiz not found.");
+            return Problem(statusCode: 404, title: "Quiz not found.");
 
         var elapsedTime = DateTime.UtcNow - attempt.StartedAt;
 
@@ -113,7 +120,7 @@ public class StudentQuizzesController : ControllerBase
 
             if (result == null)
             {
-                return BadRequest("Quiz could not be completed.");
+                return Problem(statusCode: 400, title: "Quiz could not be completed.");
             }
 
             return Ok(new
@@ -162,11 +169,12 @@ public class StudentQuizzesController : ControllerBase
 
         if (result == null)
         {
-            return BadRequest(new
-            {
-                message = "Attempt not found or already finished."
-            });
+            return Problem(statusCode: 400, title: "Attempt not found or already finished.");
         }
+
+        _logger.LogInformation(
+     "User {UserId} finished attempt {AttemptId}: {Score}/{MaxScore}",
+     userId, attemptId, result.Score, result.MaxScore);
 
         return Ok(new
         {

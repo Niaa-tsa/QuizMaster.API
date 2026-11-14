@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Service.Interfaces;
 using System.Security.Claims;
@@ -33,7 +32,7 @@ public class QuizStatisticsController : ControllerBase
             .GetQuizStatisticsAsync(quizId, lecturerId);
 
         if (statistics is null)
-            return NotFound(new { message = "Quiz not found or access denied." });
+            return Problem(statusCode: 404, title: "Quiz not found or access denied.");
 
         return Ok(statistics);
     }

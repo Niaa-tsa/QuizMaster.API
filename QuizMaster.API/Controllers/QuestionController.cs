@@ -91,7 +91,7 @@ public class QuestionController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(question.QuizId);
 
         if (quiz == null)
-            return NotFound("Quiz not found.");
+            return Problem(statusCode: 404, title: "Quiz not found.");
 
         if (!IsQuizOwnedByCurrentLecturer(quiz))
             return Forbid();
@@ -130,18 +130,17 @@ public class QuestionController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(quizId);
 
         if (quiz == null)
-            return NotFound("Quiz not found.");
+            return Problem(statusCode: 404, title: "Quiz not found.");
         if (!IsQuizOwnedByCurrentLecturer(quiz))
             return Forbid();
 
         if (quiz.IsPublished)
-            return BadRequest("Cannot modify a published quiz.");
+            return Problem(statusCode: 400, title: "Cannot modify a published quiz.");
 
         var hasAttempts = await _quizService.HasAttemptsAsync(quizId);
 
         if (hasAttempts)
-            return BadRequest(
-                "Cannot add questions because students have already attempted this quiz.");
+            return Problem(statusCode: 400, title: "Cannot add questions because students have already attempted this quiz.");
 
         var question = new Question
         {
@@ -184,18 +183,17 @@ public class QuestionController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(question.QuizId);
 
         if (quiz == null)
-            return NotFound("Quiz not found.");
+            return Problem(statusCode: 404, title: "Quiz not found.");
         if (!IsQuizOwnedByCurrentLecturer(quiz))
             return Forbid();
 
         if (quiz.IsPublished)
-            return BadRequest("Cannot modify a published quiz.");
+            return Problem(statusCode: 400, title: "Cannot modify a published quiz.");
 
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
-            return BadRequest(
-                "Cannot modify a quiz that students have already attempted.");
+            return Problem(statusCode: 400, title: "Cannot modify a quiz that students have already attempted.");
 
         var updatedQuestion = new Question
         {
@@ -217,8 +215,7 @@ public class QuestionController : ControllerBase
         var updated = await _questionService.UpdateAsync(updatedQuestion);
 
         if (!updated)
-            return BadRequest(
-                "Question cannot be updated. Check answer option IDs or existing student answers.");
+            return Problem(statusCode: 400, title: "Question cannot be updated. Check answer option IDs or existing student answers.");
 
         return Ok(new { message = "Question updated successfully." });
     }
@@ -237,24 +234,22 @@ public class QuestionController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(question.QuizId);
 
         if (quiz == null)
-            return NotFound("Quiz not found.");
+            return Problem(statusCode: 404, title: "Quiz not found.");
         if (!IsQuizOwnedByCurrentLecturer(quiz))
             return Forbid();
 
         if (quiz.IsPublished)
-            return BadRequest("Cannot delete a question from a published quiz.");
+            return Problem(statusCode: 400, title: "Cannot delete a question from a published quiz.");
 
         var hasAttempts = await _quizService.HasAttemptsAsync(quiz.Id);
 
         if (hasAttempts)
-            return BadRequest(
-                "Cannot modify a quiz that students have already attempted.");
+            return Problem(statusCode: 400, title: "Cannot modify a quiz that students have already attempted.");
 
         var deleted = await _questionService.DeleteAsync(id);
 
         if (!deleted)
-            return BadRequest(
-                "Question cannot be deleted because students have already answered it.");
+            return Problem(statusCode: 400, title: "Question cannot be deleted because students have already answered it.");
 
         return Ok(new { message = "Question deleted successfully." });
     }

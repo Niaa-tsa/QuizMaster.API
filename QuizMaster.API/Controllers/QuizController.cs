@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Quizzes;
 using QuizMaster.Domain.Entities;
@@ -14,10 +13,14 @@ namespace QuizMaster.API.Controllers;
 public class QuizController : ControllerBase
 {
     private readonly IQuizService _quizService;
+    private readonly ILogger<QuizController> _logger;
 
-    public QuizController(IQuizService quizService)
+    public QuizController(
+        IQuizService quizService,
+        ILogger<QuizController> logger)
     {
         _quizService = quizService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -39,6 +42,7 @@ public class QuizController : ControllerBase
             Title = quiz.Title,
             TimeLimitMinutes = quiz.TimeLimitMinutes,
             IsPublished = quiz.IsPublished,
+            MaxAttempts = quiz.MaxAttempts,
             CreatedAt = quiz.CreatedAt
         }).ToList();
 
@@ -57,7 +61,7 @@ public class QuizController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(id);
 
         if (quiz is null)
-            return NotFound(new { message = "Quiz not found." });
+            return Problem(statusCode: 404, title: "Quiz not found.");
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -73,6 +77,7 @@ public class QuizController : ControllerBase
             Title = quiz.Title,
             TimeLimitMinutes = quiz.TimeLimitMinutes,
             IsPublished = quiz.IsPublished,
+            MaxAttempts = quiz.MaxAttempts,
             CreatedAt = quiz.CreatedAt
         };
 
@@ -96,8 +101,8 @@ public class QuizController : ControllerBase
         {
             Title = request.Title,
             TimeLimitMinutes = request.TimeLimitMinutes,
-            IsPublished = false,
             MaxAttempts = request.MaxAttempts,
+            IsPublished = false,
             LecturerId = lecturerId
         };
 
@@ -109,6 +114,7 @@ public class QuizController : ControllerBase
             Title = quiz.Title,
             TimeLimitMinutes = quiz.TimeLimitMinutes,
             IsPublished = quiz.IsPublished,
+            MaxAttempts = quiz.MaxAttempts,
             CreatedAt = quiz.CreatedAt
         };
 
@@ -132,7 +138,7 @@ public class QuizController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(id);
 
         if (quiz is null)
-            return NotFound(new { message = "Quiz not found." });
+            return Problem(statusCode: 404, title: "Quiz not found.");
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -144,23 +150,19 @@ public class QuizController : ControllerBase
 
         if (quiz.IsPublished)
         {
-            return BadRequest(new
-            {
-                message = "Published quizzes cannot be updated."
-            });
+            return Problem(statusCode: 400, title: "Published quizzes cannot be updated.");
         }
 
         quiz.Title = request.Title;
         quiz.TimeLimitMinutes = request.TimeLimitMinutes;
+
         quiz.MaxAttempts = request.MaxAttempts;
+
         var updated = await _quizService.UpdateAsync(quiz);
 
         if (!updated)
         {
-            return BadRequest(new
-            {
-                message = "Quiz cannot be updated because it is published or has student attempts."
-            });
+            return Problem(statusCode: 400, title: "Quiz cannot be updated because it is published or has student attempts.");
         }
 
         var response = new QuizResponseDTO
@@ -169,6 +171,7 @@ public class QuizController : ControllerBase
             Title = quiz.Title,
             TimeLimitMinutes = quiz.TimeLimitMinutes,
             IsPublished = quiz.IsPublished,
+            MaxAttempts = quiz.MaxAttempts,
             CreatedAt = quiz.CreatedAt
         };
 
@@ -186,7 +189,7 @@ public class QuizController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(id);
 
         if (quiz is null)
-            return NotFound(new { message = "Quiz not found." });
+            return Problem(statusCode: 404, title: "Quiz not found.");
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -197,18 +200,12 @@ public class QuizController : ControllerBase
             return Forbid();
 
         if (quiz.IsPublished)
-            return BadRequest(new
-            {
-                message = "Published quizzes cannot be deleted."
-            });
+            return Problem(statusCode: 400, title: "Published quizzes cannot be deleted.");
 
         var deleted = await _quizService.DeleteAsync(id);
 
         if (!deleted)
-            return BadRequest(new
-            {
-                message = "Quiz has student attempts and cannot be deleted."
-            });
+            return Problem(statusCode: 400, title: "Quiz has student attempts and cannot be deleted.");
 
         return NoContent();
     }
@@ -224,7 +221,7 @@ public class QuizController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(id);
 
         if (quiz is null)
-            return NotFound(new { message = "Quiz not found." });
+            return Problem(statusCode: 404, title: "Quiz not found.");
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -235,24 +232,19 @@ public class QuizController : ControllerBase
             return Forbid();
 
         if (quiz.IsPublished)
-            return BadRequest(new
-            {
-                message = "Quiz is already published."
-            });
+            return Problem(statusCode: 400, title: "Quiz is already published.");
 
         if (quiz.Questions == null || !quiz.Questions.Any())
-            return BadRequest(new
-            {
-                message = "Quiz must contain at least one question."
-            });
+            return Problem(statusCode: 400, title: "Quiz must contain at least one question.");
 
         var published = await _quizService.PublishAsync(id);
 
         if (!published)
-            return BadRequest(new
-            {
-                message = "Quiz could not be published."
-            });
+            return Problem(statusCode: 400, title: "Quiz could not be published.");
+
+        _logger.LogInformation(
+      "Lecturer {LecturerId} published quiz {QuizId}",
+      lecturerId, id);
 
         return Ok(new { message = "Quiz published successfully." });
     }
@@ -268,7 +260,7 @@ public class QuizController : ControllerBase
         var quiz = await _quizService.GetByIdAsync(id);
 
         if (quiz is null)
-            return NotFound(new { message = "Quiz not found." });
+            return Problem(statusCode: 404, title: "Quiz not found.");
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -279,18 +271,16 @@ public class QuizController : ControllerBase
             return Forbid();
 
         if (!quiz.IsPublished)
-            return BadRequest(new
-            {
-                message = "Quiz is already closed."
-            });
+            return Problem(statusCode: 400, title: "Quiz is already closed.");
 
         var closed = await _quizService.CloseAsync(id);
 
         if (!closed)
-            return BadRequest(new
-            {
-                message = "Quiz could not be closed."
-            });
+            return Problem(statusCode: 400, title: "Quiz could not be closed.");
+
+        _logger.LogInformation(
+    "Lecturer {LecturerId} closed quiz {QuizId}",
+    lecturerId, id);
 
         return Ok(new { message = "Quiz closed successfully." });
     }
@@ -319,6 +309,7 @@ public class QuizController : ControllerBase
             Title = quiz.Title,
             TimeLimitMinutes = quiz.TimeLimitMinutes,
             IsPublished = quiz.IsPublished,
+            MaxAttempts = quiz.MaxAttempts,
             CreatedAt = quiz.CreatedAt
         }).ToList();
 

@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Admin;
 using QuizMaster.Service.Interfaces;
@@ -50,8 +49,7 @@ public class AdminController : ControllerBase
 
         if (!result)
         {
-            return BadRequest(
-                "User not found or lecturer request is not pending.");
+            return Problem(statusCode: 400, title: "User not found or lecturer request is not pending.");
         }
 
         return Ok(new
@@ -70,8 +68,7 @@ public class AdminController : ControllerBase
 
         if (!result)
         {
-            return BadRequest(
-                "User not found or lecturer request is not pending.");
+            return Problem(statusCode: 400, title: "User not found or lecturer request is not pending.");
         }
 
         return Ok(new
@@ -93,8 +90,7 @@ public class AdminController : ControllerBase
 
         if (!result)
         {
-            return BadRequest(
-                "User not found or invalid role.");
+            return Problem(statusCode: 400, title: "User not found or invalid role.");
         }
 
         return Ok(new
