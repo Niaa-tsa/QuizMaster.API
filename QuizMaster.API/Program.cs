@@ -16,6 +16,7 @@ using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 using QuizMaster.Service.Services;
 using System.Text;
+using QuizMaster.API.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +90,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IAnswerOptionService, AnswerOptionService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddSingleton<IProfilePhotoStorage, LocalProfilePhotoStorage>();
 builder.Services.AddScoped<IQuizAttemptService, QuizAttemptService>();
 builder.Services.AddScoped<IStudentAnswerService, StudentAnswerService>();
 builder.Services.AddScoped<IAdminService, AdminService>();

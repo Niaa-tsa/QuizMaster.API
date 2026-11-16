@@ -277,6 +277,10 @@ namespace QuizMaster.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ProfilePhotoUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
                     b.Property<string>("RequestedRole")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");

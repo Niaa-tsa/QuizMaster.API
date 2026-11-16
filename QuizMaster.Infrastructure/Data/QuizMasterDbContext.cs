@@ -49,6 +49,10 @@ public class QuizMasterDbContext : DbContext
             .IsRequired();
 
         modelBuilder.Entity<User>()
+            .Property(u => u.ProfilePhotoUrl)
+            .HasMaxLength(300);
+
+        modelBuilder.Entity<User>()
             .HasOne(u => u.Role)
             .WithMany(r => r.Users)
             .HasForeignKey(u => u.RoleId)

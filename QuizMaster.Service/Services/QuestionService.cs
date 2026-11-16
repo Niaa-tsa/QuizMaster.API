@@ -153,6 +153,7 @@ public class QuestionService : IQuestionService
         return new QuestionResponseDTO
         {
             Id = question.Id,
+            QuizId = question.QuizId,
             Text = question.Text,
             Type = question.Type,
             Points = question.Points,

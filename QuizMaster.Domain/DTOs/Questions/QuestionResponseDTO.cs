@@ -11,6 +11,7 @@ public class QuestionResponseDTO
     public QuestionType Type { get; set; }
 
     public decimal Points { get; set; }
+    public int QuizId { get; set; }
 
     public List<AnswerOptionResponseDTO> AnswerOptions { get; set; }
         = new();

@@ -14,7 +14,7 @@ public class User
 
     public string? RequestedRole { get; set; }
     public string ApprovalStatus { get; set; } = "Approved";
-
+    public string? ProfilePhotoUrl { get; set; }    
     public ICollection<QuizAttempt> QuizAttempts { get; set; }
         = new List<QuizAttempt>();
 
