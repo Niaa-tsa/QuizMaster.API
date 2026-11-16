@@ -1,4 +1,5 @@
-﻿using QuizMaster.Domain.DTOs.Admin;
+﻿
+using QuizMaster.Domain.DTOs.Admin;
 
 namespace QuizMaster.Service.Interfaces;
 
@@ -15,4 +16,7 @@ public interface IAdminService
     Task<bool> ChangeUserRoleAsync(
         int userId,
         ChangeUserRoleDTO dto);
+
+    Task<AdminStatisticsDTO> GetStatisticsAsync();
+    Task<bool> DeleteUserAsync(int userId);
 }

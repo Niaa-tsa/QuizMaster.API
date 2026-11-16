@@ -8,7 +8,7 @@ namespace QuizMaster.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,SuperAdmin")]
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _adminService;
@@ -96,6 +96,37 @@ public class AdminController : ControllerBase
         return Ok(new
         {
             message = "User role changed successfully!"
+        });
+    }
+    /// <summary>
+    /// აბრუნებს სისტემის სტატისტიკას.
+    /// </summary>
+    [HttpGet("statistics")]
+    public async Task<IActionResult> GetStatistics()
+    {
+        var statistics = await _adminService.GetStatisticsAsync();
+
+        return Ok(statistics);
+    }
+
+    /// <summary>
+    /// ახდენს მომხმარებლის დეაქტივაციას.
+    /// </summary>
+    [HttpDelete("users/{userId}")]
+    public async Task<IActionResult> DeleteUser(int userId)
+    {
+        var result = await _adminService.DeleteUserAsync(userId);
+
+        if (!result)
+        {
+            return Problem(
+                statusCode: 400,
+                title: "User not found or cannot be deactivated.");
+        }
+
+        return Ok(new
+        {
+            message = "User deactivated successfully!"
         });
     }
 }

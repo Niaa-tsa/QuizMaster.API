@@ -40,7 +40,8 @@ public class JwtTokenService : IJwtTokenService
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.UserName),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, roleName)
+            new(ClaimTypes.Role, roleName),
+            new("TokenVersion", user.TokenVersion.ToString())
         };
 
         var signingKey = new SymmetricSecurityKey(

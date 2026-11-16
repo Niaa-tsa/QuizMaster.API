@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using QuizMaster.API.Middleware;
 using QuizMaster.API.Seed;
+using QuizMaster.API.Storage;
 using QuizMaster.Domain.Entities;
 using QuizMaster.Infrastructure.Data;
 using QuizMaster.Infrastructure.Identity;
@@ -15,8 +16,8 @@ using QuizMaster.Infrastructure.Validators;
 using QuizMaster.Service.Interfaces;
 using QuizMaster.Service.Interfaces.Repositories;
 using QuizMaster.Service.Services;
+using System.Security.Claims;
 using System.Text;
-using QuizMaster.API.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -115,26 +116,66 @@ var jwtAudience = builder.Configuration["Jwt:Audience"]
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = jwtIssuer,
+   .AddJwtBearer(options =>
+   {
+       options.TokenValidationParameters = new TokenValidationParameters
+       {
+           ValidateIssuer = true,
+           ValidIssuer = jwtIssuer,
 
-            ValidateAudience = true,
-            ValidAudience = jwtAudience,
+           ValidateAudience = true,
+           ValidAudience = jwtAudience,
 
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
+           ValidateLifetime = true,
+           ValidateIssuerSigningKey = true,
 
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtKey)
-            ),
+           IssuerSigningKey = new SymmetricSecurityKey(
+               Encoding.UTF8.GetBytes(jwtKey)
+           ),
 
-            ClockSkew = TimeSpan.Zero
-        };
-    });
+           ClockSkew = TimeSpan.Zero
+       };
+
+       // CHECK TOKEN VERSION
+       options.Events = new JwtBearerEvents
+       {
+           OnTokenValidated = async context =>
+           {
+               var userIdClaim = context.Principal?
+                   .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+               var tokenVersionClaim = context.Principal?
+                   .FindFirst("TokenVersion")?.Value;
+
+               if (!int.TryParse(userIdClaim, out var userId) ||
+                   !int.TryParse(tokenVersionClaim, out var tokenVersion))
+               {
+                   context.Fail("Invalid token.");
+                   return;
+               }
+
+               var dbContext = context.HttpContext.RequestServices
+                   .GetRequiredService<QuizMasterDbContext>();
+               var userData = await dbContext.Users
+                   .AsNoTracking()
+                   .Where(u => u.Id == userId)
+                   .Select(u => new
+                   {
+                       u.TokenVersion,
+                       u.IsDeleted
+                   })
+                   .FirstOrDefaultAsync();
+
+               if (userData == null ||
+                   userData.IsDeleted ||
+                   userData.TokenVersion != tokenVersion)
+               {
+                   context.Fail("Token has been revoked.");
+               }
+
+           }
+       };
+   });
 
 builder.Services.AddAuthorization();
 

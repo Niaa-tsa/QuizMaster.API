@@ -114,7 +114,7 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetUserByEmailAsync(
             request.Email.Trim());
 
-        if (user is null)
+        if (user is null || user.IsDeleted)
             return null;
 
         var verificationResult =
@@ -149,5 +149,38 @@ public class AuthService : IAuthService
             Role = roleName,
             Token = _jwtTokenService.GenerateToken(user)
         };
+    }
+    // CHANGE PASSWORD
+
+    // CHANGE PASSWORD
+
+    public async Task<bool> ChangePasswordAsync(
+        int userId,
+        ChangePasswordDTO request)
+    {
+        var user = await _userRepository.GetUserByIdAsync(userId);
+
+        if (user == null)
+            return false;
+
+        var verificationResult =
+            _passwordHasher.VerifyHashedPassword(
+                user,
+                user.PasswordHash,
+                request.CurrentPassword);
+
+        if (verificationResult == PasswordVerificationResult.Failed)
+            return false;
+
+        user.PasswordHash = _passwordHasher.HashPassword(
+            user,
+            request.NewPassword);
+
+        // REVOKE OLD TOKENS
+        user.TokenVersion++;
+
+        await _userRepository.SaveChangesAsync();
+
+        return true;
     }
 }

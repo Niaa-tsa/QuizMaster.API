@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using QuizMaster.API.Extensions;
 using QuizMaster.Domain.DTOs.Auth;
 using QuizMaster.Service.Interfaces;
 
@@ -55,5 +57,30 @@ public class AuthController : ControllerBase
             "User logged in: {Email}", request.Email);
 
         return Ok(response);
+    }
+    // CHANGE PASSWORD
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword(
+        [FromBody] ChangePasswordDTO request)
+    {
+        var userId = User.GetUserId();
+
+        var result = await _authService.ChangePasswordAsync(
+            userId,
+            request);
+
+        if (!result)
+        {
+            return Problem(
+                statusCode: 400,
+                title: "Incorrect current password or user not found.");
+        }
+
+        return Ok(new
+        {
+            message = "Password changed successfully!"
+        });
     }
 }

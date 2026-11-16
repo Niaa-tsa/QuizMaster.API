@@ -19,10 +19,23 @@ const HOME = {
 };
 
 const NAV = {
-  Student: [['#/student', 'ტესტები'], ['#/student/history', 'ჩემი შედეგები']],
-  Lecturer: [['#/lecturer', 'ჩემი ტესტები']],
-  Admin: [['#/admin', 'მომხმარებლები']],
-  SuperAdmin: [['#/superadmin', 'ადმინისტრატორები']]
+    Student: [
+        ['#/student', 'ტესტები'],
+        ['#/student/history', 'ჩემი შედეგები']
+    ],
+
+    Lecturer: [
+        ['#/lecturer', 'ჩემი ტესტები']
+    ],
+
+    Admin: [
+        ['#/admin', 'მომხმარებლები']
+    ],
+
+    SuperAdmin: [
+        ['#/admin', 'მომხმარებლები'],
+        ['#/superadmin', 'ადმინისტრატორები']
+    ]
 };
 
 // roles არ არის მითითებული → საკმარისია ავტორიზაცია
@@ -36,8 +49,8 @@ const routes = [
   { re: /^#\/attempt\/(\d+)$/, roles: ['Student'], view: attemptView },
   { re: /^#\/lecturer$/, roles: ['Lecturer'], view: lecturerView },
   { re: /^#\/lecturer\/quiz\/(\d+)$/, roles: ['Lecturer'], view: quizDetailView },
-  { re: /^#\/admin$/, roles: ['Admin'], view: adminView },
-  { re: /^#\/superadmin$/, roles: ['SuperAdmin'], view: superAdminView }
+    { re: /^#\/admin$/, roles: ['Admin', 'SuperAdmin'], view: adminView },
+    { re: /^#\/superadmin$/, roles: ['SuperAdmin'], view: superAdminView }
 ];
 
 const state = { profile: null };

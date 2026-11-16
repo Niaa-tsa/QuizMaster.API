@@ -60,7 +60,8 @@ namespace QuizMaster.Infrastructure.Repositories
             if (user == null)
                 throw new ArgumentException("User not found");
 
-            _context.Users.Remove(user);
+            user.IsDeleted = true;
+            user.TokenVersion++;
         }
 
         public async Task SaveChangesAsync()

@@ -14,7 +14,9 @@ public class User
 
     public string? RequestedRole { get; set; }
     public string ApprovalStatus { get; set; } = "Approved";
-    public string? ProfilePhotoUrl { get; set; }    
+    public string? ProfilePhotoUrl { get; set; }
+    public int TokenVersion { get; set; } = 0;
+    public bool IsDeleted { get; set; } = false;
     public ICollection<QuizAttempt> QuizAttempts { get; set; }
         = new List<QuizAttempt>();
 
