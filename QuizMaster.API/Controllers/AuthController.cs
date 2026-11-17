@@ -58,8 +58,9 @@ public class AuthController : ControllerBase
 
         return Ok(response);
     }
-    // CHANGE PASSWORD
-
+    /// <summary>
+    /// ცვლის პაროლს.
+    /// </summary>
     [Authorize]
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword(

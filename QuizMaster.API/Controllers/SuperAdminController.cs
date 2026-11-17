@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuizMaster.Domain.DTOs.Admin;
 using QuizMaster.Service.Interfaces;
@@ -25,7 +26,9 @@ public class SuperAdminController : ControllerBase
     // ADMIN MANAGEMENT
     // =====================================
 
-    // CREATE ADMIN
+    /// <summary>
+    /// ქმნის ახალ Admin მომხმარებელს.
+    /// </summary>
     [HttpPost("create-admin")]
     public async Task<IActionResult> CreateAdmin(
         [FromBody] CreateAdminDTO dto)
@@ -45,7 +48,9 @@ public class SuperAdminController : ControllerBase
         });
     }
 
-    // GET ALL ADMINS
+    /// <summary>
+    /// აბრუნებს სისტემაში არსებულ ყველა Admin მომხმარებელს.
+    /// </summary>
     [HttpGet("admins")]
     public async Task<IActionResult> GetAllAdmins()
     {
@@ -54,7 +59,9 @@ public class SuperAdminController : ControllerBase
         return Ok(admins);
     }
 
-    // GET ADMIN BY ID
+    /// <summary>
+    /// აბრუნებს კონკრეტულ Admin მომხმარებელს მისი ID-ის მიხედვით.
+    /// </summary>
     [HttpGet("admins/{id}")]
     public async Task<IActionResult> GetAdminById(int id)
     {
@@ -70,7 +77,9 @@ public class SuperAdminController : ControllerBase
         return Ok(admin);
     }
 
-    // DELETE ADMIN
+    /// <summary>
+    /// შლის სისტემიდან კონკრეტულ Admin მომხმარებელს.
+    /// </summary>
     [HttpDelete("admins/{id}")]
     public async Task<IActionResult> DeleteAdmin(int id)
     {
@@ -93,7 +102,9 @@ public class SuperAdminController : ControllerBase
     // ADMIN FUNCTIONS
     // =====================================
 
-    // GET ALL USERS
+    /// <summary>
+    /// აბრუნებს სისტემაში რეგისტრირებულ ყველა მომხმარებელს.
+    /// </summary>
     [HttpGet("users")]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -102,7 +113,9 @@ public class SuperAdminController : ControllerBase
         return Ok(users);
     }
 
-    // GET PENDING LECTURERS
+    /// <summary>
+    /// აბრუნებს Lecturer-ის დადასტურების მომლოდინე მოთხოვნებს.
+    /// </summary>
     [HttpGet("pending-lecturers")]
     public async Task<IActionResult> GetPendingLecturers()
     {
@@ -111,7 +124,9 @@ public class SuperAdminController : ControllerBase
         return Ok(users);
     }
 
-    // APPROVE LECTURER
+    /// <summary>
+    /// ადასტურებს მომხმარებლის Lecturer-ის მოთხოვნას.
+    /// </summary>
     [HttpPost("approve-lecturer/{userId}")]
     public async Task<IActionResult> ApproveLecturer(int userId)
     {
@@ -130,7 +145,9 @@ public class SuperAdminController : ControllerBase
         });
     }
 
-    // REJECT LECTURER
+    /// <summary>
+    /// უარყოფს მომხმარებლის Lecturer-ის მოთხოვნას.
+    /// </summary>
     [HttpPost("reject-lecturer/{userId}")]
     public async Task<IActionResult> RejectLecturer(int userId)
     {
@@ -149,7 +166,9 @@ public class SuperAdminController : ControllerBase
         });
     }
 
-    // CHANGE USER ROLE
+    /// <summary>
+    /// ცვლის მომხმარებლის როლს.
+    /// </summary>
     [HttpPut("change-role/{userId}")]
     public async Task<IActionResult> ChangeUserRole(
         int userId,

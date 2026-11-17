@@ -152,8 +152,6 @@ public class AuthService : IAuthService
     }
     // CHANGE PASSWORD
 
-    // CHANGE PASSWORD
-
     public async Task<bool> ChangePasswordAsync(
         int userId,
         ChangePasswordDTO request)

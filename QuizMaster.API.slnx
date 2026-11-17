@@ -1,4 +1,8 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+    <File Path="uizMaster-ERD.md" />
+  </Folder>
   <Project Path="QuizMaster.API/QuizMaster.API.csproj" />
   <Project Path="QuizMaster.Domain/QuizMaster.Domain.csproj" />
   <Project Path="QuizMaster.Infrastructure/QuizMaster.Infrastructure.csproj" />
